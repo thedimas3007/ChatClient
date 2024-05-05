@@ -31,14 +31,14 @@ namespace ChatClient {
         private void NavigationViewControl_OnSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args) {
             NavigationViewControl.IsBackEnabled = ContentFrame.CanGoBack;
             Type selectedPage;
-            //if (args.SelectedItemContainer.Tag.ToString() == "Settings") {
-            //    selectedPage = typeof(Views.SettingsPage);
-            //} else {
-            //    selectedPage = Type.GetType(args.SelectedItemContainer.Tag.ToString());
-            //}
+            if (args.SelectedItemContainer.Tag.ToString() == "Settings") {
+                selectedPage = typeof(Views.SettingsPage);
+            } else {
+                selectedPage = Type.GetType(args.SelectedItemContainer.Tag.ToString());
+            }
 
-            //ContentFrame.Navigate(selectedPage, null, new EntranceNavigationTransitionInfo());
-            //NavigationViewControl.Header = ((NavigationViewItem)NavigationViewControl.SelectedItem)?.Content?.ToString();
+            ContentFrame.Navigate(selectedPage, null, new EntranceNavigationTransitionInfo());
+            NavigationViewControl.Header = ((NavigationViewItem)NavigationViewControl.SelectedItem)?.Content?.ToString();
         }
 
         private void NavigationViewControl_OnBackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args) {

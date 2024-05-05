@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Page
+    x:Class="ChatClient.Views.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
+    xmlns:local="using:ChatClient.Views"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:ui="using:CommunityToolkit.WinUI"
+    mc:Ignorable="d">
+
+    <StackPanel>
+        <controls:SettingsExpander x:Name="settingsCard"
+                                   Header="Tokens"
+                                   HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}"
+                                   IsEnabled="{x:Bind IsCardEnabled, Mode=OneWay}"
+                                   IsExpanded="{x:Bind IsCardExpanded, Mode=OneWay}">
+            <controls:SettingsExpander.Items>
+                <Grid>
+                    <controls:SettingsCard Header="OpenAI">
+                        <PasswordBox PlaceholderText="OpenAI token"
+                                     Width="500">
+                        </PasswordBox>
+                    </controls:SettingsCard>
+                </Grid>
+            </controls:SettingsExpander.Items>
+        </controls:SettingsExpander>
+    </StackPanel>
+</Page>
