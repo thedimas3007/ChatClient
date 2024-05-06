@@ -7,6 +7,7 @@ using Microsoft.UI.Xaml.Media;
 using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -20,10 +21,21 @@ namespace ChatClient.Views {
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class SettingsPage : Page {
-        private bool IsCardExpanded = false;
-        private bool IsCardEnabled = true;
+        Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        public bool IsCardExpanded = false;
+        public bool IsCardEnabled = true;
         public SettingsPage() {
             this.InitializeComponent();
+        }
+
+        private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) {
+            PasswordBox passwordBox = sender as PasswordBox;
+            localSettings.Values[passwordBox.Name] = passwordBox.Password;
+            
+            TextBlock textBlock = FindName(passwordBox.Name + "Block") as TextBlock;
+            if (textBlock != null) {
+                textBlock.Text = passwordBox.Password;
+            }
         }
     }
 }

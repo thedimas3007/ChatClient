@@ -16,29 +16,31 @@
         <Grid
             x:Name="AppTitleBar"
             Height="48"
-            Margin="48,0,0,0"
             VerticalAlignment="Top"
-            Padding="0">
+            Padding="12,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
-            <Image
-                x:Name="AppFontIcon"
-                Width="16"
-                Height="16"
-                HorizontalAlignment="Left"
-                VerticalAlignment="Center"
-                Source="/Assets/Square44x44Logo.png" />
-            <TextBlock
-                Margin="12,0,0,0"
-                Grid.Column="1"
-                VerticalAlignment="Center"
-                Style="{StaticResource CaptionTextBlockStyle}"
-                Text="Chat Client"/>
+
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <Image
+                    x:Name="AppFontIcon"
+                    Width="16"
+                    Height="16"
+                    Source="/Assets/Square44x44Logo.png" />
+                <TextBlock
+                    Margin="8,0,0,0"
+                    VerticalAlignment="Center"
+                    Style="{StaticResource CaptionTextBlockStyle}"
+                    Text="Chat Client"/>
+            </StackPanel>
         </Grid>
 
-        <NavigationView Name="NavigationViewControl" SelectionChanged="NavigationViewControl_OnSelectionChanged" BackRequested="NavigationViewControl_OnBackRequested">
+        <NavigationView Name="NavigationViewControl" 
+                        SelectionChanged="NavigationViewControl_OnSelectionChanged"
+                        BackRequested="NavigationViewControl_OnBackRequested"
+                        IsTitleBarAutoPaddingEnabled="True">
             <NavigationView.MenuItems>
                 <NavigationViewItem Content="Chat" Tag="ChatClient.Views.ChatPage">
                     <NavigationViewItem.Icon>
@@ -51,8 +53,9 @@
                         <FontIcon Glyph="&#xE81C;"></FontIcon>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
+
             </NavigationView.MenuItems>
-            <Frame x:Name="ContentFrame" Padding="45,43,45,0"/>
+            <Frame x:Name="ContentFrame" Padding="15,26,15,0" Margin="30,0"/>
         </NavigationView>
     </Grid>
 </Window>

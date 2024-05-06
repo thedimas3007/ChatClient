@@ -9,12 +9,32 @@
             <ResourceDictionary.MergedDictionaries>
                 <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
             </ResourceDictionary.MergedDictionaries>
-
+            
             <Thickness x:Key="NavigationViewContentGridBorderThickness">1,1,0,0</Thickness>
             <CornerRadius x:Key="NavigationViewContentGridCornerRadius">8,0,0,0</CornerRadius>
             <Thickness x:Key="NavigationViewContentMargin">0,48,0,0</Thickness>
             <Thickness x:Key="NavigationViewHeaderMargin">56,34,0,0</Thickness>
             <Thickness x:Key="NavigationViewPageContentMargin">56,24,56,0</Thickness>
+
+            <Style x:Key="BotChatBubbleStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+                <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="12,8,12,8" />
+                <Setter Property="HorizontalAlignment" Value="Left" />
+                <Setter Property="Margin" Value="0,4,0,4" />
+            </Style>
+
+            <Style x:Key="UserChatBubbleStyle" TargetType="Border">
+                <Setter Property="Background" Value="{ThemeResource AccentAcrylicBackgroundFillColorBaseBrush}" />
+                <!--<Setter Property="BorderBrush" Value="{ThemeResource SystemAccentColor}" />-->
+                <Setter Property="BorderThickness" Value="1" />
+                <Setter Property="CornerRadius" Value="8" />
+                <Setter Property="Padding" Value="12,8,12,8" />
+                <Setter Property="HorizontalAlignment" Value="Right" />
+                <Setter Property="Margin" Value="0,4,0,4" />
+            </Style>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -9,22 +9,27 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
-
-    <StackPanel>
-        <controls:SettingsExpander x:Name="settingsCard"
-                                   Header="Tokens"
-                                   HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}"
-                                   IsEnabled="{x:Bind IsCardEnabled, Mode=OneWay}"
-                                   IsExpanded="{x:Bind IsCardExpanded, Mode=OneWay}">
-            <controls:SettingsExpander.Items>
-                <Grid>
-                    <controls:SettingsCard Header="OpenAI">
-                        <PasswordBox PlaceholderText="OpenAI token"
-                                     Width="500">
-                        </PasswordBox>
-                    </controls:SettingsCard>
-                </Grid>
-            </controls:SettingsExpander.Items>
-        </controls:SettingsExpander>
+    <ScrollViewer>
+        <StackPanel>
+            <controls:SettingsExpander x:Name="settingsCard"
+                                       Header="Tokens"
+                                       HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}"
+                                       IsEnabled="{x:Bind IsCardEnabled, Mode=OneWay}"
+                                       IsExpanded="{x:Bind IsCardExpanded, Mode=OneWay}">
+                <controls:SettingsExpander.Items>
+                    <Grid BorderThickness="0">
+                        <controls:SettingsCard Header="OpenAI">
+                            <PasswordBox x:Name="openaiToken"
+                                         PlaceholderText="OpenAI token"
+                                         Width="500"
+                                         PasswordChanged="PasswordBox_OnPasswordChanged">
+                            </PasswordBox>
+                        </controls:SettingsCard>
+                    </Grid>
+                    <TextBlock x:Name="openaiTokenBlock"
+                               Text="{x:Bind Path=localSettings.Values['openaiToken'], Mode=OneWay}"></TextBlock>
+                </controls:SettingsExpander.Items>
+            </controls:SettingsExpander>
     </StackPanel>
+    </ScrollViewer>
 </Page>

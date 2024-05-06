@@ -37,6 +37,10 @@ namespace ChatClient {
                 selectedPage = Type.GetType(args.SelectedItemContainer.Tag.ToString());
             }
 
+            if (selectedPage == null) {
+                return;
+            }
+
             ContentFrame.Navigate(selectedPage, null, new EntranceNavigationTransitionInfo());
             NavigationViewControl.Header = ((NavigationViewItem)NavigationViewControl.SelectedItem)?.Content?.ToString();
         }
