@@ -26,8 +26,6 @@
                             </PasswordBox>
                         </controls:SettingsCard>
                     </Grid>
-                    <TextBlock x:Name="openaiTokenBlock"
-                               Text="{x:Bind Path=localSettings.Values['openaiToken'], Mode=OneWay}"></TextBlock>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
     </StackPanel>

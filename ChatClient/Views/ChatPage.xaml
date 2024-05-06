@@ -7,10 +7,11 @@
     xmlns:local="using:ChatClient.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    xmlns:uicontorls="using:CommunityToolkit.WinUI.UI.Controls"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     mc:Ignorable="d">
 
-    <Grid>
+    <Grid x:Name="rootGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
@@ -21,33 +22,46 @@
             </StackPanel>
         </ScrollViewer>
 
-        <TextBox Grid.Row="1"
-                 Margin="0,15,0,15"
-                 VerticalAlignment="Bottom">
-            <TextBox.Template>
-                <ControlTemplate>
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <Button Grid.Column="0"
-                                VerticalAlignment="Center"
-                                BorderThickness="0"
-                                Background="{x:Null}">
-                            <FontIcon Glyph="&#xE723;" />
-                        </Button>
-                        <TextBox Grid.Column="1" />
-                        <Button Grid.Column="2"
-                                VerticalAlignment="Center"
-                                BorderThickness="0"
-                                Background="{x:Null}">
-                            <FontIcon Glyph="&#xE724;" />
-                        </Button>
-                    </Grid>
-                </ControlTemplate>
-            </TextBox.Template>
-        </TextBox>
+        <Grid Grid.Row="1"
+              Margin="0,15,0,15"
+              VerticalAlignment="Bottom">
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0"
+                    VerticalAlignment="Center"
+                    BorderThickness="0"
+                    Background="{x:Null}">
+                <FontIcon Glyph="&#xE723;" />
+            </Button>
+
+            <TextBox Grid.Column="1"
+                     x:Name="messageBox"/>
+            
+            <Button x:Name="sendButton"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    BorderThickness="0"
+                    Background="{x:Null}"
+                    Click="SendButton_OnClick">
+
+                <FontIcon Glyph="&#xE724;" />
+            </Button>
+        </Grid>
+
+
+<InfoBar Grid.Row="0"
+                 MaxWidth="480"
+                 Margin="24"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Top"
+                 Background="{StaticResource CardBackgroundFillColorDefaultBrush}">
+            <interactivity:Interaction.Behaviors>
+                <behaviors:StackedNotificationsBehavior x:Name="NotificationQueue" />
+            </interactivity:Interaction.Behaviors>
+        </InfoBar>
     </Grid>
 </Page>

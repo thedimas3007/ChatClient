@@ -31,11 +31,6 @@ namespace ChatClient.Views {
         private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) {
             PasswordBox passwordBox = sender as PasswordBox;
             localSettings.Values[passwordBox.Name] = passwordBox.Password;
-            
-            TextBlock textBlock = FindName(passwordBox.Name + "Block") as TextBlock;
-            if (textBlock != null) {
-                textBlock.Text = passwordBox.Password;
-            }
         }
     }
 }

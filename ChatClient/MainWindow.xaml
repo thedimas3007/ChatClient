@@ -32,7 +32,6 @@
                 <TextBlock
                     Margin="8,0,0,0"
                     VerticalAlignment="Center"
-                    Style="{StaticResource CaptionTextBlockStyle}"
                     Text="Chat Client"/>
             </StackPanel>
         </Grid>
