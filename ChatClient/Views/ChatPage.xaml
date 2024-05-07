@@ -17,8 +17,14 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0">
+        <ScrollViewer x:Name="chatScroller"
+                      Grid.Row="0">
             <StackPanel x:Name="messagesPanel" Margin="15,0">
+                <StackPanel.ChildrenTransitions>
+                    <TransitionCollection>
+                        <AddDeleteThemeTransition />
+                    </TransitionCollection>
+                </StackPanel.ChildrenTransitions>
             </StackPanel>
         </ScrollViewer>
 

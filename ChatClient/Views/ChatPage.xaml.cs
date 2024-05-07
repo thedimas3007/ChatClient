@@ -16,10 +16,14 @@ using Windows.Foundation.Collections;
 using Windows.UI;
 using CommunityToolkit.WinUI.Behaviors;
 using CommunityToolkit.WinUI.UI.Controls;
+using Microsoft.UI.Xaml.Media.Animation;
 using OpenAI_API;
 using OpenAI_API.Chat;
 using OpenAI_API.Models;
 using OpenAI_API.Moderation;
+using CommunityToolkit.WinUI.Animations;
+using System.Xml.Linq;
+using Windows.UI.Core.AnimationMetrics;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -49,8 +53,9 @@ namespace ChatClient.Views {
                 Style = (Style)Application.Current.Resources[message.Role.Equals(ChatMessageRole.User) ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
                 Child = textBlock
             };
-
             messagesPanel.Children.Add(border);
+            chatScroller.UpdateLayout();
+            chatScroller.ChangeView(null, chatScroller.ScrollableHeight, null, false);
         }
 
 
