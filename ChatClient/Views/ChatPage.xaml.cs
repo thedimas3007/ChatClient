@@ -35,80 +35,79 @@ namespace ChatClient.Views {
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class ChatPage : Page {
-        private ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
-        private OpenAiOptions openaiOptions = new OpenAiOptions();
-        private OpenAIService openaiApi;
-        private List<ChatMessage> messages = new List<ChatMessage>();
-        private bool generating = false;
+        private ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
+        private OpenAIService _openaiApi;
+        private List<ChatMessage> _messages = new();
+        private bool _generating = false;
 
         public ChatPage() {
             InitializeComponent();
-            openaiApi = new OpenAIService(new OpenAiOptions() {
-                ApiKey = localSettings.Values["openaiToken"].ToString()
+            _openaiApi = new OpenAIService(new OpenAiOptions() {
+                ApiKey = _localSettings.Values["openaiToken"].ToString()
             });
         }
 
-        private void addMessage(ChatMessage message) {
-            MarkdownTextBlock textBlock = new MarkdownTextBlock() {
+        private void AddMessage(ChatMessage message) {
+            MarkdownTextBlock textBlock = new() {
                 UseSyntaxHighlighting = true,
                 Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)),
                 Text = message.Content
             };
 
-            Border border = new Border {
+            Border border = new() {
                 Style = (Style)Application.Current.Resources[message.Role == "user" ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
                 Child = textBlock
             };
-            messagesPanel.Children.Add(border);
-            chatScroller.UpdateLayout();
-            chatScroller.ChangeView(null, chatScroller.ScrollableHeight, null, false);
+            MessagesPanel.Children.Add(border);
+            ChatScroller.UpdateLayout();
+            ChatScroller.ChangeView(null, ChatScroller.ScrollableHeight, null, false);
         }
 
-        private void updateLastMessage(string token) {
-            ((messagesPanel.Children[^1] as Border).Child as MarkdownTextBlock).Text += token;
-            chatScroller.UpdateLayout();
-            chatScroller.ChangeView(null, chatScroller.ScrollableHeight, null, false);
+        private void UpdateLastMessage(string token) {
+            ((MessagesPanel.Children[^1] as Border).Child as MarkdownTextBlock).Text += token;
+            ChatScroller.UpdateLayout();
+            ChatScroller.ChangeView(null, ChatScroller.ScrollableHeight, null, false);
         }
 
         private async void SendButton_OnClick(object sender, RoutedEventArgs e) {
-            string text = messageBox.Text;
-            messageBox.Text = "";
-            if (text.Trim() == "" || generating) {
+            string text = MessageBox.Text;
+            MessageBox.Text = "";
+            if (text.Trim() == "" || _generating) {
                 return;
             }
             
-            ChatMessage message = new ChatMessage("user", text);
-            messages.Add(message);
-            addMessage(message);
+            ChatMessage message = new("user", text);
+            _messages.Add(message);
+            AddMessage(message);
 
-            sendButton.IsEnabled = false;
-            messageBox.IsEnabled = false;
-            generating = true;
+            SendButton.IsEnabled = false;
+            MessageBox.IsEnabled = false;
+            _generating = true;
 
             Debug.WriteLine("Starting generating!");
-            Debug.WriteLine(messages[^1].Content);
+            Debug.WriteLine(_messages[^1].Content);
 
-            ChatMessage newMessage = new ChatMessage("assistant", "");
-            addMessage(newMessage);
+            ChatMessage newMessage = new("assistant", "");
+            AddMessage(newMessage);
             string response = "";
-            var call = openaiApi.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest() {
-                Messages = messages,
+            var call = _openaiApi.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest() {
+                Messages = _messages,
                 Model = Models.Gpt_3_5_Turbo
             });
             await foreach (var result in call) {
                 string res = result.Choices.FirstOrDefault()?.Message.Content;
-                updateLastMessage(res);
+                UpdateLastMessage(res);
                 response += res;
             }
 
             newMessage.Content = response;
-            messages.Add(newMessage);
+            _messages.Add(newMessage);
 
-            sendButton.IsEnabled = true;
-            messageBox.IsEnabled = true;
-            generating = false;
+            SendButton.IsEnabled = true;
+            MessageBox.IsEnabled = true;
+            _generating = false;
             Debug.WriteLine("Finished generating!");
-            messageBox.Focus(FocusState.Programmatic);
+            MessageBox.Focus(FocusState.Programmatic);
         }
 
         private void MessageBox_OnKeyDown(object sender, KeyRoutedEventArgs e) {

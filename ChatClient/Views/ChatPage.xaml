@@ -11,15 +11,15 @@
     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     mc:Ignorable="d">
 
-    <Grid x:Name="rootGrid">
+    <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer x:Name="chatScroller"
+        <ScrollViewer x:Name="ChatScroller"
                       Grid.Row="0">
-            <StackPanel x:Name="messagesPanel" Margin="15,0">
+            <StackPanel x:Name="MessagesPanel" Margin="15,0">
                 <StackPanel.ChildrenTransitions>
                     <TransitionCollection>
                         <AddDeleteThemeTransition />
@@ -43,11 +43,11 @@
             </Button>
 
             <TextBox Grid.Column="1"
-                     x:Name="messageBox"
+                     x:Name="MessageBox"
                      Margin="10,0"
                      KeyDown="MessageBox_OnKeyDown"/>
             
-            <Button x:Name="sendButton"
+            <Button x:Name="SendButton"
                     Grid.Column="2"
                     VerticalAlignment="Center"
                     Click="SendButton_OnClick">

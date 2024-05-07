@@ -11,7 +11,7 @@
     mc:Ignorable="d">
     <ScrollViewer>
         <StackPanel>
-            <controls:SettingsExpander x:Name="settingsCard"
+            <controls:SettingsExpander x:Name="SettingsCard"
                                        Header="Tokens"
                                        HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}"
                                        IsEnabled="{x:Bind IsCardEnabled, Mode=OneWay}"
@@ -19,7 +19,7 @@
                 <controls:SettingsExpander.Items>
                     <Grid BorderThickness="0">
                         <controls:SettingsCard Header="OpenAI">
-                            <PasswordBox x:Name="openaiToken"
+                            <PasswordBox x:Name="OpenaiToken"
                                          PlaceholderText="OpenAI token"
                                          Width="500"
                                          PasswordChanged="PasswordBox_OnPasswordChanged">
