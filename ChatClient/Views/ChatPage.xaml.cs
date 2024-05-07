@@ -24,6 +24,7 @@ using OpenAI_API.Moderation;
 using CommunityToolkit.WinUI.Animations;
 using System.Xml.Linq;
 using Windows.UI.Core.AnimationMetrics;
+using OpenAI_API.Completions;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -58,6 +59,11 @@ namespace ChatClient.Views {
             chatScroller.ChangeView(null, chatScroller.ScrollableHeight, null, false);
         }
 
+        private void updateLastMessage(string token) {
+            ((messagesPanel.Children[^1] as Border).Child as MarkdownTextBlock).Text += token;
+            chatScroller.UpdateLayout();
+            chatScroller.ChangeView(null, chatScroller.ScrollableHeight, null, false);
+        }
 
         private async void SendButton_OnClick(object sender, RoutedEventArgs e) {
             string text = messageBox.Text;
@@ -69,16 +75,27 @@ namespace ChatClient.Views {
             ChatMessage message = new ChatMessage(ChatMessageRole.User, text);
             messages.Add(message);
             addMessage(message);
+
             sendButton.IsEnabled = false;
             messageBox.IsEnabled = false;
             generating = true;
+
             openaiApi.Auth = new APIAuthentication(localSettings.Values["openaiToken"].ToString());
             Debug.WriteLine("Starting generating!");
             Debug.WriteLine(messages[^1].TextContent);
-            var result = await openaiApi.Chat.CreateChatCompletionAsync(messages, Model.ChatGPTTurbo);
-            ChatMessage resp = result.Choices[0].Message;
-            messages.Add(resp);
-            addMessage(resp);
+
+            ChatMessage newMessage = new ChatMessage(ChatMessageRole.Assistant, "");
+            addMessage(newMessage);
+            string response = "";
+            //var result = await openaiApi.Chat.CreateChatCompletionAsync(messages, Model.ChatGPTTurbo);
+            await foreach (ChatResult result in openaiApi.Chat.StreamChatEnumerableAsync(messages)) {
+                updateLastMessage(result.ToString());
+                response += result.ToString();
+            }
+
+            newMessage.TextContent = response;
+            messages.Add(newMessage);
+
             sendButton.IsEnabled = true;
             messageBox.IsEnabled = true;
             generating = false;
