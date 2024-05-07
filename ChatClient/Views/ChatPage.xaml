@@ -38,22 +38,19 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button Grid.Column="0"
-                    VerticalAlignment="Center"
-                    BorderThickness="0"
-                    Background="{x:Null}">
+                    VerticalAlignment="Center">
                 <FontIcon Glyph="&#xE723;" />
             </Button>
 
             <TextBox Grid.Column="1"
-                     x:Name="messageBox"/>
+                     x:Name="messageBox"
+                     Margin="10,0"
+                     KeyDown="MessageBox_OnKeyDown"/>
             
             <Button x:Name="sendButton"
                     Grid.Column="2"
                     VerticalAlignment="Center"
-                    BorderThickness="0"
-                    Background="{x:Null}"
                     Click="SendButton_OnClick">
-
                 <FontIcon Glyph="&#xE724;" />
             </Button>
         </Grid>

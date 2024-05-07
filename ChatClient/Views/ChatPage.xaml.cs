@@ -17,14 +17,15 @@ using Windows.UI;
 using CommunityToolkit.WinUI.Behaviors;
 using CommunityToolkit.WinUI.UI.Controls;
 using Microsoft.UI.Xaml.Media.Animation;
-using OpenAI_API;
-using OpenAI_API.Chat;
-using OpenAI_API.Models;
-using OpenAI_API.Moderation;
 using CommunityToolkit.WinUI.Animations;
 using System.Xml.Linq;
+using Windows.Storage;
+using Windows.System;
 using Windows.UI.Core.AnimationMetrics;
-using OpenAI_API.Completions;
+using OpenAI;
+using OpenAI.Managers;
+using OpenAI.ObjectModels;
+using OpenAI.ObjectModels.RequestModels;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -34,24 +35,28 @@ namespace ChatClient.Views {
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class ChatPage : Page {
-        Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
-        private OpenAIAPI openaiApi = new OpenAI_API.OpenAIAPI();
+        private ApplicationDataContainer localSettings = ApplicationData.Current.LocalSettings;
+        private OpenAiOptions openaiOptions = new OpenAiOptions();
+        private OpenAIService openaiApi;
         private List<ChatMessage> messages = new List<ChatMessage>();
         private bool generating = false;
 
         public ChatPage() {
-            this.InitializeComponent();
+            InitializeComponent();
+            openaiApi = new OpenAIService(new OpenAiOptions() {
+                ApiKey = localSettings.Values["openaiToken"].ToString()
+            });
         }
 
         private void addMessage(ChatMessage message) {
             MarkdownTextBlock textBlock = new MarkdownTextBlock() {
                 UseSyntaxHighlighting = true,
                 Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)),
-                Text = message.TextContent
+                Text = message.Content
             };
 
             Border border = new Border {
-                Style = (Style)Application.Current.Resources[message.Role.Equals(ChatMessageRole.User) ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
+                Style = (Style)Application.Current.Resources[message.Role == "user" ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
                 Child = textBlock
             };
             messagesPanel.Children.Add(border);
@@ -72,7 +77,7 @@ namespace ChatClient.Views {
                 return;
             }
             
-            ChatMessage message = new ChatMessage(ChatMessageRole.User, text);
+            ChatMessage message = new ChatMessage("user", text);
             messages.Add(message);
             addMessage(message);
 
@@ -80,26 +85,36 @@ namespace ChatClient.Views {
             messageBox.IsEnabled = false;
             generating = true;
 
-            openaiApi.Auth = new APIAuthentication(localSettings.Values["openaiToken"].ToString());
             Debug.WriteLine("Starting generating!");
-            Debug.WriteLine(messages[^1].TextContent);
+            Debug.WriteLine(messages[^1].Content);
 
-            ChatMessage newMessage = new ChatMessage(ChatMessageRole.Assistant, "");
+            ChatMessage newMessage = new ChatMessage("assistant", "");
             addMessage(newMessage);
             string response = "";
-            //var result = await openaiApi.Chat.CreateChatCompletionAsync(messages, Model.ChatGPTTurbo);
-            await foreach (ChatResult result in openaiApi.Chat.StreamChatEnumerableAsync(messages)) {
-                updateLastMessage(result.ToString());
-                response += result.ToString();
+            var call = openaiApi.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest() {
+                Messages = messages,
+                Model = Models.Gpt_3_5_Turbo
+            });
+            await foreach (var result in call) {
+                string res = result.Choices.FirstOrDefault()?.Message.Content;
+                updateLastMessage(res);
+                response += res;
             }
 
-            newMessage.TextContent = response;
+            newMessage.Content = response;
             messages.Add(newMessage);
 
             sendButton.IsEnabled = true;
             messageBox.IsEnabled = true;
             generating = false;
             Debug.WriteLine("Finished generating!");
+            messageBox.Focus(FocusState.Programmatic);
+        }
+
+        private void MessageBox_OnKeyDown(object sender, KeyRoutedEventArgs e) {
+            if (e.Key == VirtualKey.Enter) {
+                SendButton_OnClick(sender, e);
+            }
         }
     }
 }
