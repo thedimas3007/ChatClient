@@ -22,7 +22,8 @@
                             <PasswordBox x:Name="OpenaiToken"
                                          PlaceholderText="OpenAI token"
                                          Width="500"
-                                         PasswordChanged="PasswordBox_OnPasswordChanged">
+                                         PasswordChanged="PasswordBox_OnPasswordChanged"
+                                         Password="{x:Bind _localSettings.Values['OpenaiToken']}">
                             </PasswordBox>
                         </controls:SettingsCard>
                     </Grid>

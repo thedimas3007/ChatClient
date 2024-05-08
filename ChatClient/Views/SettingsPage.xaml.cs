@@ -13,6 +13,7 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -21,7 +22,7 @@ namespace ChatClient.Views {
     /// An empty page that can be used on its own or navigated to within a Frame.
     /// </summary>
     public sealed partial class SettingsPage : Page {
-        Windows.Storage.ApplicationDataContainer localSettings = Windows.Storage.ApplicationData.Current.LocalSettings;
+        ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
         public bool IsCardExpanded = false;
         public bool IsCardEnabled = true;
         public SettingsPage() {
@@ -30,7 +31,7 @@ namespace ChatClient.Views {
 
         private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) {
             PasswordBox passwordBox = sender as PasswordBox;
-            localSettings.Values[passwordBox.Name] = passwordBox.Password;
+            _localSettings.Values[passwordBox.Name] = passwordBox.Password;
         }
     }
 }
