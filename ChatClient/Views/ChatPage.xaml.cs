@@ -22,6 +22,7 @@ using System.Xml.Linq;
 using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core.AnimationMetrics;
+using ChatClient.Repositories;
 using OpenAI;
 using OpenAI.Managers;
 using OpenAI.ObjectModels;
@@ -38,6 +39,7 @@ namespace ChatClient.Views {
         private ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
         private OpenAIService _openaiApi;
         private List<ChatMessage> _messages = new();
+        private Chat selectedChat = null;
         private bool _generating = false;
 
         public ChatPage() {
@@ -58,15 +60,17 @@ namespace ChatClient.Views {
                 Style = (Style)Application.Current.Resources[message.Role == "user" ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
                 Child = textBlock
             };
-            MessagesPanel.Children.Add(border);
-            ChatScroller.UpdateLayout();
-            ChatScroller.ChangeView(null, ChatScroller.ScrollableHeight, null, false);
+            ListView.Items.Add(border);
+            //ListView.UpdateLayout();
+            //ListView.ScrollIntoView(border);
         }
 
         private void UpdateLastMessage(string token) {
-            ((MessagesPanel.Children[^1] as Border).Child as MarkdownTextBlock).Text += token;
-            ChatScroller.UpdateLayout();
-            ChatScroller.ChangeView(null, ChatScroller.ScrollableHeight, null, false);
+            Border border = ListView.Items[^1] as Border;
+            MarkdownTextBlock element = border.Child as MarkdownTextBlock;
+            element.Text += token;
+            ListView.UpdateLayout();
+            //ListView.ScrollIntoView(border);
         }
 
         private async void SendButton_OnClick(object sender, RoutedEventArgs e) {
@@ -119,6 +123,11 @@ namespace ChatClient.Views {
         private void FileButton_OnClick(object sender, RoutedEventArgs e) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Warning;
             NotificationQueue.Show("Files are not yet implemented", 2000, "Not implemented");
+        }
+
+        private void RenameButton_OnClick(object sender, RoutedEventArgs e) {
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Warning;
+            NotificationQueue.Show("Chat renaming is not yet implemented", 2000, "Not implemented");
         }
     }
 }

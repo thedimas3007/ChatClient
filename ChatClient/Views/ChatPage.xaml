@@ -9,7 +9,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+    xmlns:converters="using:CommunityToolkit.WinUI.UI.Converters"
     mc:Ignorable="d">
+
+    <Page.Resources>
+        <converters:EmptyStringToObjectConverter x:Key="EmptyStringToObjectConverter"
+                                                 EmptyValue="False"
+                                                 NotEmptyValue="True" />
+    </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
@@ -18,17 +25,69 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer x:Name="ChatScroller"
-                      Grid.Row="0">
-                <StackPanel x:Name="MessagesPanel" Margin="60,26,45,0">
-                    <StackPanel Height="80"></StackPanel>
-                    <StackPanel.ChildrenTransitions>
-                        <TransitionCollection>
-                            <AddDeleteThemeTransition />
-                        </TransitionCollection>
-                    </StackPanel.ChildrenTransitions>
-                </StackPanel>
-        </ScrollViewer>
+        <ListView x:Name="ListView" SelectionMode="None">
+            <ListView.Header>
+                <Grid BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                      BorderThickness="0,0,0,1"
+                      Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <StackPanel Grid.Column="0"
+                                Orientation="Vertical"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Top"
+                                MaxHeight="100">
+                        <interactivity:Interaction.Behaviors>
+                            <behaviors:QuickReturnHeaderBehavior />
+                        </interactivity:Interaction.Behaviors>
+                        <TextBlock x:Name="HeaderTextBlock"
+                                   Text="New Chat"
+                                   FontSize="20"
+                                   FontWeight="Bold"
+                                   Margin="60,20"
+                                   VerticalAlignment="Center"
+                                   Visibility="Visible"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                HorizontalAlignment="Right"
+                                Orientation="Horizontal"
+                                Margin="60,0">
+                        <Button x:Name="RenameButton"
+                                Height="32"
+                                Margin="0,0,8,0"
+                                Click="RenameButton_OnClick">
+                            <Button.Content>
+                                <FontIcon FontSize="16" Glyph="&#xE70F;" />
+                            </Button.Content>
+                        </Button>
+
+                        <Button x:Name="DeleteButton"
+                                Height="32"
+                                Margin="0">
+                            <Button.Content>
+                                <FontIcon FontSize="16" Glyph="&#xE74D;" />
+                            </Button.Content>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </ListView.Header>
+
+            <ListView.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <ItemsStackPanel ItemsUpdatingScrollMode="KeepLastItemInView" Margin="60,26,45,0">
+                        <ItemsStackPanel.ChildrenTransitions>
+                            <TransitionCollection>
+                                <AddDeleteThemeTransition />
+                            </TransitionCollection>
+                        </ItemsStackPanel.ChildrenTransitions>
+                    </ItemsStackPanel>
+                </ItemsPanelTemplate>
+            </ListView.ItemsPanel>
+        </ListView>
 
         <Grid Grid.Row="1"
               Margin="45,0,45,15"
@@ -57,25 +116,11 @@
             <Button x:Name="SendButton"
                     Grid.Column="2"
                     VerticalAlignment="Center"
-                    Click="SendButton_OnClick">
+                    Click="SendButton_OnClick"
+                    IsEnabled="{x:Bind MessageBox.Text, Mode=OneWay, Converter={StaticResource EmptyStringToObjectConverter}}">
                 <FontIcon Glyph="&#xE724;" />
             </Button>
         </Grid>
-
-        <StackPanel Grid.Row="0"
-                    Orientation="Vertical"
-                    HorizontalAlignment="Stretch"
-                    VerticalAlignment="Top"
-                    MaxHeight="100"
-                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
-                    BorderThickness="0,0,0,1">
-            <Border Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
-                <TextBlock Text="Your advertisement could have been here" 
-                           FontSize="20"
-                           FontWeight="700"
-                           Margin="60,20"/>
-            </Border>
-        </StackPanel>
 
         <InfoBar Grid.Row="0"
                  MaxWidth="480"
