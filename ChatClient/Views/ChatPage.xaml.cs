@@ -29,6 +29,7 @@ using OpenAI;
 using OpenAI.Managers;
 using OpenAI.ObjectModels;
 using OpenAI.ObjectModels.RequestModels;
+using Microsoft.UI.Xaml.Media.Imaging;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -94,6 +95,18 @@ namespace ChatClient.Views {
                 UseSyntaxHighlighting = true,
                 Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)),
                 Text = message.Content
+            };
+            textBlock.LinkClicked += async (sender, e) => {
+                await Launcher.LaunchUriAsync(new Uri(e.Link));
+            };
+            textBlock.ImageClicked += async (sender, e) => {
+                var dialog = new ContentDialog {
+                    XamlRoot = this.XamlRoot,
+                    Title = "Image",
+                    Content = new Image { Source = new BitmapImage(new Uri(e.Link)) },
+                    CloseButtonText = "Close"
+                };
+                await dialog.ShowAsync();
             };
 
             var border = new Border() {
