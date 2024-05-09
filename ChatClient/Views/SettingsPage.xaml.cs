@@ -8,6 +8,7 @@ using Microsoft.UI.Xaml.Navigation;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -32,6 +33,10 @@ namespace ChatClient.Views {
         private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e) {
             PasswordBox passwordBox = sender as PasswordBox;
             _localSettings.Values[passwordBox.Name] = passwordBox.Password;
+        }
+
+        private void HomeButton_OnClick(object sender, RoutedEventArgs e) {
+            Process.Start("explorer.exe", ApplicationData.Current.LocalFolder.Path);
         }
     }
 }

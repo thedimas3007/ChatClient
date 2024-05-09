@@ -44,7 +44,7 @@
                             <behaviors:QuickReturnHeaderBehavior />
                         </interactivity:Interaction.Behaviors>
                         <TextBlock x:Name="HeaderTextBlock"
-                                   Text="New Chat"
+                                   Text="{x:Bind _selectedChat.Title}"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    Margin="60,20"

@@ -29,6 +29,11 @@
                     </Grid>
                 </controls:SettingsExpander.Items>
             </controls:SettingsExpander>
+
+            <controls:SettingsCard Header="App Directory"
+                                   HeaderIcon="{ui:FontIcon Glyph=&#xE8B7;}">
+                <Button x:Name="HomeButton" Content="Open" Click="HomeButton_OnClick"/>
+            </controls:SettingsCard>
     </StackPanel>
     </ScrollViewer>
 </Page>

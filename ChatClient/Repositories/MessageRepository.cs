@@ -18,25 +18,27 @@ using OpenAI.ObjectModels.ResponseModels;
 using System.Data;
 
 namespace ChatClient.Repositories {
-    enum MessageRole {
-        System,
-        Assistant,
-        User,
-        Tool
-    }
-
-    class Chat {
+    class Chat { // Probably add *Chat methods from MessageRepository
         public int Id;
         public string Title;
         public DateTime CreatedAt;
         public DateTime LastAccessed;
 
-        public List<Message> GetMessages() {
-            return new List<Message>();
+        public async Task<List<Message>> GetMessages() {
+            return await MessageRepository.GetMessages(Id);
         }
 
-        public List<ChatMessage> GetChatMessages() {
-            return GetMessages().ConvertAll(m => m.AsChatMessage());
+        public async Task<List<ChatMessage>> GetChatMessages() {
+            List<Message> messages = await GetMessages();
+            return messages.ConvertAll(m => m.AsChatMessage());
+        }
+
+        public async Task<Message> CreateMessage(ChatMessage message) {
+            return await MessageRepository.CreateMessage(Id, message);
+        }
+
+        public async void DeleteMessage(int messageId) {
+            await MessageRepository.DeleteMessage(messageId);
         }
 
         public Chat(int id, string title, DateTime? createdAt, DateTime? lastAccessed) {
@@ -52,14 +54,14 @@ namespace ChatClient.Repositories {
     class Message { // TODO: image support
         public int Id;
         public int ChatId;
-        public MessageRole Role;
+        public string Role;
         public string? Content;
         public List<ToolCall>? ToolCalls;
         public string? Name;
         public string? ToolCallId;
         public DateTime CreatedAt;
 
-        public Message(int id, int chatId, MessageRole role, string content, List<ToolCall>? toolCalls = null, string? name = null, string? toolCallId = null, DateTime? createdAt = null) {
+        public Message(int id, int chatId, string role, string content, List<ToolCall>? toolCalls = null, string? name = null, string? toolCallId = null, DateTime? createdAt = null) {
             Id = id;
             ChatId = chatId;
             Role = role;
@@ -97,22 +99,22 @@ namespace ChatClient.Repositories {
             _connection.Open();
 
             var createChatTableCommand = new SqliteCommand(@"CREATE TABLE IF NOT EXISTS chat (
-                id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT
+                id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
                 title VARCHAR(255) NOT NULL,
                 createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                lastAccessed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                lastAccessed TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             );", _connection);
             await createChatTableCommand.ExecuteNonQueryAsync();
 
             var createMessageTableCommand = new SqliteCommand(@"CREATE TABLE IF NOT EXISTS message (
-                id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT
+                id INTEGER UNIQUE PRIMARY KEY AUTOINCREMENT,
                 chatId INTEGER NOT NULL,
                 role VARCHAR(10) NOT NULL,
                 content TEXT,
                 toolCalls TEXT,
                 name VARCHAR(64),
                 toolCallId VARCHAR(48),
-                createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             );", _connection);
             await createMessageTableCommand.ExecuteNonQueryAsync();
             _loaded = true;
@@ -195,16 +197,20 @@ namespace ChatClient.Repositories {
             if (!reader.HasRows) return new List<Message>();
 
             List<Message> result = new List<Message>();
-            do {
-                MessageRole role;
-                Enum.TryParse(reader.GetString(2), true, out role);
-                List<ToolCall> toolCalls = await JsonSerializer.DeserializeAsync<List<ToolCall>>(reader.GetStream(4));
+            while (reader.Read()) {
+                List<ToolCall> toolCalls = !reader.IsDBNull(4)
+                    ? await JsonSerializer.DeserializeAsync<List<ToolCall>>(reader.GetStream(4))
+                    : null;
 
-
-                result.Add(new Message(reader.GetInt32(0), reader.GetInt32(1),
-                    role, reader.GetString(3),
-                    toolCalls, reader.GetString(5), reader.GetString(6)));
-            } while (reader.Read());
+                result.Add(new Message(reader.GetInt32(0),
+                    reader.GetInt32(1),
+                    reader.GetString(2),
+                    !reader.IsDBNull(3) ? reader.GetString(3) : null,
+                    toolCalls,
+                    !reader.IsDBNull(5) ? reader.GetString(5) : null,
+                    !reader.IsDBNull(6) ? reader.GetString(6) : null,
+                    reader.GetDateTime(7)));
+            }
 
             return result;
         }
@@ -218,24 +224,30 @@ namespace ChatClient.Repositories {
             if (!reader.HasRows) return null;
 
             reader.Read();
-            MessageRole role;
-            Enum.TryParse(reader.GetString(2), true, out role);
-            List<ToolCall> toolCalls = await JsonSerializer.DeserializeAsync<List<ToolCall>>(reader.GetStream(4));
-            return new Message(reader.GetInt32(0), reader.GetInt32(1),
-                role, reader.GetString(3),
-                toolCalls, reader.GetString(5), reader.GetString(6));
+            List<ToolCall> toolCalls = !reader.IsDBNull(4)
+                ? await JsonSerializer.DeserializeAsync<List<ToolCall>>(reader.GetStream(4))
+                : null;
 
+            return new Message(reader.GetInt32(0), 
+                reader.GetInt32(1),
+                reader.GetString(2), 
+                !reader.IsDBNull(3) ? reader.GetString(3) : null,
+                toolCalls, 
+                !reader.IsDBNull(5) ? reader.GetString(5) : null,
+                !reader.IsDBNull(6) ? reader.GetString(6) : null,
+                reader.GetDateTime(7));
         }
 
         public static async Task<Message> CreateMessage(int chatId, ChatMessage chatMessage) {
             AssertLoaded();
             var insertMessageCommand =
-                new SqliteCommand(@"INSERT INTO message (role, content, toolCalls, name, toolCallId)
-                    VALUES (@Role, @Content, @ToolCalls, @Name, @ToolCallId);
+                new SqliteCommand(@"INSERT INTO message (role, chatId, content, toolCalls, name, toolCallId)
+                    VALUES (@Role, @ChatId, @Content, @ToolCalls, @Name, @ToolCallId);
                     SELECT last_insert_rowid();",
                     _connection);
             insertMessageCommand.Parameters.AddWithValue("@Role", chatMessage.Role);
-            insertMessageCommand.Parameters.AddWithValue("@Content", chatMessage.Content);
+            insertMessageCommand.Parameters.AddWithValue("@ChatId", chatId);
+            insertMessageCommand.Parameters.AddWithValue("@Content", chatMessage.Content != null ? chatMessage.Content : DBNull.Value);
             if (chatMessage.ToolCalls != null) {
                 var stream = new MemoryStream();
                 await JsonSerializer.SerializeAsync(stream, chatMessage.ToolCalls);
@@ -243,8 +255,8 @@ namespace ChatClient.Repositories {
             } else {
                 insertMessageCommand.Parameters.AddWithValue("@ToolCalls", DBNull.Value);
             }
-            insertMessageCommand.Parameters.AddWithValue("@Name", chatMessage.Name);
-            insertMessageCommand.Parameters.AddWithValue("@ToolCallId", chatMessage.ToolCallId);
+            insertMessageCommand.Parameters.AddWithValue("@Name", chatMessage.Name != null ? chatMessage.Name : DBNull.Value);
+            insertMessageCommand.Parameters.AddWithValue("@ToolCallId", chatMessage.ToolCallId != null ? chatMessage.ToolCallId : DBNull.Value);
 
             int id = Convert.ToInt32(await insertMessageCommand.ExecuteScalarAsync());
             return await GetMessage(id);
