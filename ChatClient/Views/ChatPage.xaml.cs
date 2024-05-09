@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using Windows.UI;
@@ -49,6 +50,10 @@ namespace ChatClient.Views {
             });
         }
 
+        public async Task<string> GenerateTitle(string startMessage) {
+            return "";
+        }
+
         private void AddMessageElement(ChatMessage message) {
             var textBlock = new MarkdownTextBlock() {
                 UseSyntaxHighlighting = true,
@@ -65,12 +70,18 @@ namespace ChatClient.Views {
 
         private void UpdateLastMessageElement(string token) {
             var border = ListView.Items[^1] as Border;
-            MarkdownTextBlock element = border.Child as MarkdownTextBlock;
+            var element = border.Child as MarkdownTextBlock;
             element.Text += token;
             ListView.UpdateLayout();
         }
 
         private async void SendButton_OnClick(object sender, RoutedEventArgs e) {
+            if (!(bool)_localSettings.Values["OpenaiTokenVerified"]) {
+                NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
+                NotificationQueue.Show("Token is either invalid or unset", 2000);
+                return;
+            }
+
             string text = MessageBox.Text;
             MessageBox.Text = "";
             if (text.Trim() == "" || _generating) {
@@ -89,13 +100,14 @@ namespace ChatClient.Views {
             MessageBox.IsEnabled = false;
             _generating = true;
 
-            ChatMessage newMessage = new("assistant", "");
+            var newMessage = new ChatMessage("assistant", "");
             AddMessageElement(newMessage);
             string response = "";
             var call = _openaiApi.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest() {
                 Messages = await _selectedChat.GetChatMessages(),
                 Model = Models.Gpt_3_5_Turbo
             });
+
             await foreach (var result in call) {
                 string res = result.Choices.FirstOrDefault()?.Message.Content;
                 UpdateLastMessageElement(res);

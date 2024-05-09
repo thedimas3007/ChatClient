@@ -151,6 +151,7 @@ namespace ChatClient.Repositories {
             if (!reader.HasRows) return null;
 
             reader.Read();
+            await UpdateChat(id, "lastAccessed", DateTime.Now);
             return new Chat(reader.GetInt32(0), reader.GetString(1), reader.GetDateTime(2), reader.GetDateTime(3));
         }
 
@@ -165,12 +166,11 @@ namespace ChatClient.Repositories {
             return await GetChat(id);
         }
 
-        public static async Task UpdateChat(int id, string key, string value) {
+        public static async Task UpdateChat(int id, string key, object value) {
             AssertLoaded();
-            var updateChatCommand = new SqliteCommand(@"UPDATE chat SET @Key = @Value WHERE Id = @Id;", _connection);
+            var updateChatCommand = new SqliteCommand($"UPDATE chat SET {key} = '@Value' WHERE Id = @Id;", _connection);
             updateChatCommand.Parameters.AddWithValue("@Id", id);
-            updateChatCommand.Parameters.AddWithValue("@Key", key);
-            updateChatCommand.Parameters.AddWithValue("@Value", value);
+            updateChatCommand.Parameters.AddWithValue("@Value", value != null ? value : DBNull.Value);
 
             await updateChatCommand.ExecuteNonQueryAsync();
         }
@@ -211,7 +211,8 @@ namespace ChatClient.Repositories {
                     !reader.IsDBNull(6) ? reader.GetString(6) : null,
                     reader.GetDateTime(7)));
             }
-
+            
+            await UpdateChat(chatId, "lastAccessed", DateTime.Now);
             return result;
         }
 
@@ -259,6 +260,7 @@ namespace ChatClient.Repositories {
             insertMessageCommand.Parameters.AddWithValue("@ToolCallId", chatMessage.ToolCallId != null ? chatMessage.ToolCallId : DBNull.Value);
 
             int id = Convert.ToInt32(await insertMessageCommand.ExecuteScalarAsync());
+            await UpdateChat(chatId, "lastAccessed", DateTime.Now);
             return await GetMessage(id);
         }
 

@@ -8,32 +8,64 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="using:CommunityToolkit.WinUI"
+    xmlns:converters="using:CommunityToolkit.WinUI.UI.Converters"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     mc:Ignorable="d">
-    <ScrollViewer Margin="45,26,45,0">
-        <StackPanel>
-            <controls:SettingsExpander x:Name="SettingsCard"
-                                       Header="Tokens"
-                                       HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}"
-                                       IsEnabled="{x:Bind IsCardEnabled, Mode=OneWay}"
-                                       IsExpanded="{x:Bind IsCardExpanded, Mode=OneWay}">
-                <controls:SettingsExpander.Items>
-                    <Grid BorderThickness="0">
-                        <controls:SettingsCard Header="OpenAI">
-                            <PasswordBox x:Name="OpenaiToken"
-                                         PlaceholderText="OpenAI token"
-                                         Width="500"
-                                         PasswordChanged="PasswordBox_OnPasswordChanged"
-                                         Password="{x:Bind _localSettings.Values['OpenaiToken']}">
-                            </PasswordBox>
-                        </controls:SettingsCard>
-                    </Grid>
-                </controls:SettingsExpander.Items>
-            </controls:SettingsExpander>
 
-            <controls:SettingsCard Header="App Directory"
-                                   HeaderIcon="{ui:FontIcon Glyph=&#xE8B7;}">
-                <Button x:Name="HomeButton" Content="Open" Click="HomeButton_OnClick"/>
-            </controls:SettingsCard>
-    </StackPanel>
-    </ScrollViewer>
+    <Page.Resources>
+        <converters:BoolToObjectConverter x:Key="BoolToIconConverter"
+                                          FalseValue="{ui:FontIcon Glyph=&#xE711;}"
+                                          TrueValue="{ui:FontIcon Glyph=&#xE73E;}" />
+    </Page.Resources>
+
+    <Grid>
+        <ScrollViewer Margin="45,26,45,0">
+            <StackPanel>
+                <controls:SettingsExpander x:Name="SettingsCard"
+                                           Header="Tokens"
+                                           Description="Press the button next to the input to verify and save tokens. Cross - unverified, Tick - verified"
+                                           HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}">
+                    <controls:SettingsExpander.Items>
+                        <Grid BorderThickness="0">
+                            <controls:SettingsCard Header="OpenAI">
+                                <!-- TODO: token input control -->
+                                <StackPanel Orientation="Horizontal">
+                                    <PasswordBox x:Name="OpenaiToken"
+                                                 PlaceholderText="OpenAI token"
+                                                 Width="500"
+                                                 Margin="15,0"
+                                                 PasswordChanged="OpenaiToken_OnPasswordChanged"
+                                                 Password="{x:Bind _localSettings.Values['OpenaiToken'], Mode=OneTime}">
+                                    </PasswordBox>
+
+                                    <Button x:Name="OpenaiTokenButton"
+                                            Style="{ThemeResource AccentButtonStyle}"
+                                            Content="{x:Bind OpenaiVerified, Mode=OneWay, Converter={StaticResource BoolToIconConverter}}"
+                                            Click="OpenaiTokenButton_OnClick"/>
+                                </StackPanel>
+                            </controls:SettingsCard>
+                        </Grid>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+
+                <controls:SettingsCard Header="App Directory"
+                                       HeaderIcon="{ui:FontIcon Glyph=&#xE8B7;}">
+                    <Button x:Name="HomeButton" Content="Open" Click="HomeButton_OnClick"/>
+                </controls:SettingsCard>
+            </StackPanel>
+        </ScrollViewer>
+
+        <InfoBar Grid.Row="0"
+                 MaxWidth="480"
+                 Margin="24"
+                 HorizontalAlignment="Right"
+                 VerticalAlignment="Top"
+                 Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+            <interactivity:Interaction.Behaviors>
+                <behaviors:StackedNotificationsBehavior x:Name="NotificationQueue" />
+            </interactivity:Interaction.Behaviors>
+        </InfoBar>
+
+    </Grid>
 </Page>
