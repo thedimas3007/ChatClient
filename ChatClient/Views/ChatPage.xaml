@@ -16,15 +16,16 @@
         <converters:EmptyStringToObjectConverter x:Key="EmptyStringToObjectConverter"
                                                  EmptyValue="False"
                                                  NotEmptyValue="True" />
+        <converters:BoolNegationConverter x:Key="BoolNegationConverter" />
     </Page.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <!--<RowDefinition Height="Auto" />-->
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
+        <!-- Messages and title -->
         <ListView x:Name="ListView" SelectionMode="None">
             <ListView.Header>
                 <Grid BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
@@ -35,16 +36,17 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
+                    <interactivity:Interaction.Behaviors>
+                        <behaviors:QuickReturnHeaderBehavior />
+                    </interactivity:Interaction.Behaviors>
+
                     <StackPanel Grid.Column="0"
                                 Orientation="Vertical"
                                 HorizontalAlignment="Stretch"
                                 VerticalAlignment="Top"
                                 MaxHeight="100">
-                        <interactivity:Interaction.Behaviors>
-                            <behaviors:QuickReturnHeaderBehavior />
-                        </interactivity:Interaction.Behaviors>
                         <TextBlock x:Name="HeaderTextBlock"
-                                   Text="{x:Bind _selectedChat.Title}"
+                                   Text="{x:Bind SelectedChat.Title}"
                                    FontSize="20"
                                    FontWeight="Bold"
                                    Margin="60,20"
@@ -88,7 +90,8 @@
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
         </ListView>
-
+        
+        <!-- Input -->
         <Grid Grid.Row="1"
               Margin="45,0,45,15"
               Padding="0,15,0,0"
@@ -110,7 +113,8 @@
             <TextBox Grid.Column="1"
                      x:Name="MessageBox"
                      Margin="10,0"
-                     KeyDown="MessageBox_OnKeyDown">
+                     KeyDown="MessageBox_OnKeyDown"
+                     IsEnabled="{x:Bind Generating, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
             </TextBox>
             
             <Button x:Name="SendButton"
@@ -122,6 +126,7 @@
             </Button>
         </Grid>
 
+        <!-- Alert bar -->
         <InfoBar Grid.Row="0"
                  MaxWidth="480"
                  Margin="24"
