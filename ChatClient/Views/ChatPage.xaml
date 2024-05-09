@@ -13,39 +13,46 @@
 
     <Grid>
         <Grid.RowDefinitions>
+            <!--<RowDefinition Height="Auto" />-->
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ScrollViewer x:Name="ChatScroller"
                       Grid.Row="0">
-            <StackPanel x:Name="MessagesPanel" Margin="15,0">
-                <StackPanel.ChildrenTransitions>
-                    <TransitionCollection>
-                        <AddDeleteThemeTransition />
-                    </TransitionCollection>
-                </StackPanel.ChildrenTransitions>
-            </StackPanel>
+                <StackPanel x:Name="MessagesPanel" Margin="60,26,45,0">
+                    <StackPanel Height="80"></StackPanel>
+                    <StackPanel.ChildrenTransitions>
+                        <TransitionCollection>
+                            <AddDeleteThemeTransition />
+                        </TransitionCollection>
+                    </StackPanel.ChildrenTransitions>
+                </StackPanel>
         </ScrollViewer>
 
         <Grid Grid.Row="1"
-              Margin="0,15,0,15"
-              VerticalAlignment="Bottom">
-
+              Margin="45,0,45,15"
+              Padding="0,15,0,0"
+              VerticalAlignment="Bottom"
+              BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+              BorderThickness="0,1,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Button Grid.Column="0"
-                    VerticalAlignment="Center">
+            <Button x:Name="FileButton"
+                    Grid.Column="0"
+                    VerticalAlignment="Center"
+                    Click="FileButton_OnClick">
                 <FontIcon Glyph="&#xE723;" />
             </Button>
 
             <TextBox Grid.Column="1"
                      x:Name="MessageBox"
                      Margin="10,0"
-                     KeyDown="MessageBox_OnKeyDown"/>
+                     KeyDown="MessageBox_OnKeyDown">
+            </TextBox>
             
             <Button x:Name="SendButton"
                     Grid.Column="2"
@@ -55,13 +62,27 @@
             </Button>
         </Grid>
 
+        <StackPanel Grid.Row="0"
+                    Orientation="Vertical"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Top"
+                    MaxHeight="100"
+                    BorderBrush="{ThemeResource SurfaceStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1">
+            <Border Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
+                <TextBlock Text="Your advertisement could have been here" 
+                           FontSize="20"
+                           FontWeight="700"
+                           Margin="60,20"/>
+            </Border>
+        </StackPanel>
 
-<InfoBar Grid.Row="0"
+        <InfoBar Grid.Row="0"
                  MaxWidth="480"
                  Margin="24"
                  HorizontalAlignment="Right"
                  VerticalAlignment="Top"
-                 Background="{StaticResource CardBackgroundFillColorDefaultBrush}">
+                 Background="{ThemeResource AcrylicInAppFillColorDefaultBrush}">
             <interactivity:Interaction.Behaviors>
                 <behaviors:StackedNotificationsBehavior x:Name="NotificationQueue" />
             </interactivity:Interaction.Behaviors>

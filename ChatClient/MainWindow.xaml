@@ -54,7 +54,7 @@
                 </NavigationViewItem>
 
             </NavigationView.MenuItems>
-            <Frame x:Name="ContentFrame" Padding="15,26,15,0" Margin="30,0"/>
+            <Frame x:Name="ContentFrame"/>
         </NavigationView>
     </Grid>
 </Window>

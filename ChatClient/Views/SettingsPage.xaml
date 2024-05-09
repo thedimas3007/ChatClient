@@ -9,7 +9,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="using:CommunityToolkit.WinUI"
     mc:Ignorable="d">
-    <ScrollViewer>
+    <ScrollViewer Margin="45,26,45,0">
         <StackPanel>
             <controls:SettingsExpander x:Name="SettingsCard"
                                        Header="Tokens"

@@ -42,7 +42,7 @@ namespace ChatClient {
             }
 
             ContentFrame.Navigate(selectedPage, null, new EntranceNavigationTransitionInfo());
-            NavigationViewControl.Header = ((NavigationViewItem)NavigationViewControl.SelectedItem)?.Content?.ToString();
+            //NavigationViewControl.Header = ((NavigationViewItem)NavigationViewControl.SelectedItem)?.Content?.ToString();
         }
 
         private void NavigationViewControl_OnBackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args) {

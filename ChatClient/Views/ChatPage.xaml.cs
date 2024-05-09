@@ -115,5 +115,10 @@ namespace ChatClient.Views {
                 SendButton_OnClick(sender, e);
             }
         }
+
+        private void FileButton_OnClick(object sender, RoutedEventArgs e) {
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Warning;
+            NotificationQueue.Show("Files are not yet implemented", 2000, "Not implemented");
+        }
     }
 }
