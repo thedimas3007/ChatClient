@@ -43,6 +43,7 @@ namespace ChatClient.Views {
 
         private ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
         private OpenAIService _openaiApi;
+        private MessageRepository _messageRepository = new MessageRepository();
         private Chat _selectedChat = new(-1, "New Chat", DateTime.Now, DateTime.Now);
         private bool _generating = false;
 
@@ -68,7 +69,6 @@ namespace ChatClient.Views {
 
         public ChatPage() {
             InitializeComponent();
-            MessageRepository.Load();
             _openaiApi = new OpenAIService(new OpenAiOptions() {
                 ApiKey = _localSettings.Values["openaiToken"].ToString()
             });
@@ -79,8 +79,8 @@ namespace ChatClient.Views {
             switch (e.PropertyName) {
                 case nameof(SelectedChat):
                     ListView.Items.Clear();
-                    foreach (var message in await SelectedChat.GetChatMessages()) {
-                        AddMessageElement(message);
+                    foreach (var message in await _messageRepository.GetMessages(SelectedChat.Id)) {
+                        AddMessageElement(message.AsChatMessage());
                     }
                     break;
                 default:
@@ -94,7 +94,7 @@ namespace ChatClient.Views {
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter != null) {
-                SelectedChat = await MessageRepository.GetChat((int)e.Parameter);
+                SelectedChat = await _messageRepository.GetChat((int)e.Parameter);
             }
             base.OnNavigatedTo(e);
         }
@@ -163,7 +163,7 @@ namespace ChatClient.Views {
             }
             
             if (SelectedChat.Id == -1) {
-                SelectedChat = await MessageRepository.CreateChat(await GenerateTitle(text));
+                SelectedChat = await _messageRepository.CreateChat(await GenerateTitle(text));
                 HeaderTextBlock.Text = SelectedChat.Title;
             }
             
@@ -171,13 +171,13 @@ namespace ChatClient.Views {
 
             var message = new ChatMessage("user", text);
             AddMessageElement(message);
-            await SelectedChat.CreateMessage(message);
+            await _messageRepository.CreateMessage(SelectedChat.Id, message);
             var newMessage = new ChatMessage("assistant", "");
             AddMessageElement(newMessage);
 
             string response = "";
             var call = _openaiApi.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest() {
-                Messages = await SelectedChat.GetChatMessages(),
+                Messages = (await _messageRepository.GetMessages(SelectedChat.Id)).ConvertAll(m => m.AsChatMessage()),
                 Model = Models.Gpt_3_5_Turbo
             });
 
@@ -188,8 +188,8 @@ namespace ChatClient.Views {
             }
 
             newMessage.Content = response;
-            await SelectedChat.CreateMessage(newMessage);
-            
+            await _messageRepository.CreateMessage(SelectedChat.Id, newMessage);
+
             Generating = false;
             MessageBox.Focus(FocusState.Programmatic);
         }

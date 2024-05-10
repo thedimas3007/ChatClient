@@ -80,7 +80,7 @@
 
             <ListView.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <ItemsStackPanel ItemsUpdatingScrollMode="KeepLastItemInView" Margin="60,26,45,0">
+                    <ItemsStackPanel ItemsUpdatingScrollMode="KeepLastItemInView" Margin="60,26,45,15">
                         <ItemsStackPanel.ChildrenTransitions>
                             <TransitionCollection>
                                 <AddDeleteThemeTransition />

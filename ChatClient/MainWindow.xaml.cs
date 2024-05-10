@@ -21,10 +21,9 @@ using ChatClient.Repositories;
 // and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace ChatClient {
-    /// <summary>
-    /// An empty window that can be used on its own or navigated to within a Frame.
-    /// </summary>
     public sealed partial class MainWindow : Window {
+        private MessageRepository _messageRepository = new MessageRepository();
+
         public MainWindow() {
             InitializeComponent();
             ExtendsContentIntoTitleBar = true;
@@ -34,8 +33,7 @@ namespace ChatClient {
         }
 
         private async Task LoadChats() {
-            await MessageRepository.Load();
-            var chats = await MessageRepository.GetChats();
+            var chats = await _messageRepository.GetChats();
             foreach (var chat in chats) {
                 HistoryNavigationItem.MenuItems.Add(new NavigationViewItem() {
                     Content = chat.Title,
