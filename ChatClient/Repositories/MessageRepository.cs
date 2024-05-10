@@ -16,6 +16,7 @@ using System.Xml;
 using WinRT;
 using OpenAI.ObjectModels.ResponseModels;
 using System.Data;
+using File = System.IO.File;
 
 namespace ChatClient.Repositories {
     class Chat { // Probably add *Chat methods from MessageRepository
@@ -88,11 +89,11 @@ namespace ChatClient.Repositories {
             if (!_loaded) throw new InvalidOperationException("The database is not loaded.");
         }
 
-        public static async void Load() {
+        public static async Task Load() {
             if (_loaded) return;
 
-            if (!await _localFolder.FileExistsAsync("chatData.db")) {
-                await _localFolder.CreateFileAsync("chatData.db");
+            if (!File.Exists(_databasePath)) {
+                File.Create(_databasePath);
             }
 
             _connection = new SqliteConnection($"Filename={_databasePath}");
@@ -135,10 +136,10 @@ namespace ChatClient.Repositories {
             var result = new List<Chat>();
             var getChatsCommand = new SqliteCommand(@"SELECT * FROM chat;", _connection);
             var reader = await getChatsCommand.ExecuteReaderAsync();
-            do {
+            while (reader.Read()) {
                 result.Add(new Chat(reader.GetInt32(0), reader.GetString(1),
                     reader.GetDateTime(2), reader.GetDateTime(3)));
-            } while (reader.Read());
+            }
 
             return result;
         }
@@ -168,7 +169,7 @@ namespace ChatClient.Repositories {
 
         public static async Task UpdateChat(int id, string key, object value) {
             AssertLoaded();
-            var updateChatCommand = new SqliteCommand($"UPDATE chat SET {key} = '@Value' WHERE Id = @Id;", _connection);
+            var updateChatCommand = new SqliteCommand($"UPDATE chat SET {key} = @Value WHERE Id = @Id;", _connection);
             updateChatCommand.Parameters.AddWithValue("@Id", id);
             updateChatCommand.Parameters.AddWithValue("@Value", value != null ? value : DBNull.Value);
 

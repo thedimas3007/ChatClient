@@ -13,27 +13,27 @@
 
 
     <Grid>
-        <Grid
-            x:Name="AppTitleBar"
-            Height="48"
-            VerticalAlignment="Top"
-            Padding="12,0">
+        <Grid x:Name="AppTitleBar"
+              Height="48"
+              Margin="48,0,0,0"
+              VerticalAlignment="Top"
+              Padding="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-
-            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                <Image
-                    x:Name="AppFontIcon"
-                    Width="16"
-                    Height="16"
-                    Source="/Assets/Square44x44Logo.png" />
-                <TextBlock
-                    Margin="8,0,0,0"
-                    VerticalAlignment="Center"
-                    Text="Chat Client"/>
-            </StackPanel>
+            <Image Grid.Column="0"
+                   x:Name="AppFontIcon"
+                   Width="16"
+                   Height="16"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Center"
+                   Source="/Assets/Square44x44Logo.png" />
+            <TextBlock Margin="12,0,0,0"
+                       Grid.Column="1"
+                       VerticalAlignment="Center"
+                       Style="{StaticResource CaptionTextBlockStyle}"
+                       Text="Chat Client"/>
         </Grid>
 
         <NavigationView Name="NavigationViewControl" 
@@ -47,14 +47,14 @@
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
 
-                <NavigationViewItem Content="History" Tag="ChatClient.Views.HistoryPage">
+                <NavigationViewItem x:Name="HistoryNavigationItem" Content="History" Tag="ChatClient.Views.HistoryPage">
                     <NavigationViewItem.Icon>
                         <FontIcon Glyph="&#xE81C;"></FontIcon>
                     </NavigationViewItem.Icon>
                 </NavigationViewItem>
-
             </NavigationView.MenuItems>
             <Frame x:Name="ContentFrame"/>
         </NavigationView>
     </Grid>
 </Window>
+ 

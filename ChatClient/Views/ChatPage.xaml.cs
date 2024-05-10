@@ -72,10 +72,36 @@ namespace ChatClient.Views {
             _openaiApi = new OpenAIService(new OpenAiOptions() {
                 ApiKey = _localSettings.Values["openaiToken"].ToString()
             });
+            PropertyChanged += ChatPage_PropertyChanged;
+        }
+
+        private async void ChatPage_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+            switch (e.PropertyName) {
+                case nameof(SelectedChat):
+                    ListView.Items.Clear();
+                    foreach (var message in await SelectedChat.GetChatMessages()) {
+                        AddMessageElement(message);
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
 
         private void OnPropertyChanged(string propertyName) {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        protected override async void OnNavigatedTo(NavigationEventArgs e) {
+            if (e.Parameter != null) {
+                SelectedChat = await MessageRepository.GetChat((int)e.Parameter);
+            }
+            base.OnNavigatedTo(e);
+        }
+
+        protected override void OnNavigatedFrom(NavigationEventArgs e) {
+            base.OnNavigatedFrom(e);
+            PropertyChanged -= ChatPage_PropertyChanged;
         }
 
         public async Task<string> GenerateTitle(string startMessage) { // TODO: create Utils class with all functions
