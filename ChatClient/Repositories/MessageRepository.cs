@@ -230,6 +230,10 @@ namespace ChatClient.Repositories {
         }
 
         public async Task DeleteChat(int id) {
+            foreach (var message in await GetMessages(id)) {
+                await DeleteMessage(message.Id);
+            }
+
             var deleteChatCommand = new SqliteCommand(@"DELETE FROM chat WHERE Id = @Id;", _connection);
             deleteChatCommand.Parameters.AddWithValue("@Id", id);
 

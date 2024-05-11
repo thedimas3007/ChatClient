@@ -164,16 +164,18 @@ namespace ChatClient.Views {
             if (text.Trim() == "" || Generating) {
                 return;
             }
-            
-            if (!await _messageRepository.HasMessages(SelectedChat.Id)) {
-                 _messageRepository.UpdateChat(SelectedChat.Id, "title", await GenerateTitle(text));
-                //HeaderTextBlock.Text = SelectedChat.Title;
-            }
-            
+
             Generating = true;
 
             var message = new ChatMessage("user", text);
             AddMessageElement(message);
+
+            if (!await _messageRepository.HasMessages(SelectedChat.Id)) {
+                string title = await GenerateTitle(text);
+                await _messageRepository.UpdateChat(SelectedChat.Id, "title", title);
+                HeaderTextBlock.Text = title;
+            }
+            
             await _messageRepository.CreateMessage(SelectedChat.Id, message);
             var newMessage = new ChatMessage("assistant", "");
             AddMessageElement(newMessage);
@@ -211,6 +213,10 @@ namespace ChatClient.Views {
         private void RenameButton_OnClick(object sender, RoutedEventArgs e) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Warning;
             NotificationQueue.Show("Chat renaming is not yet implemented", 2000, "Not implemented");
+        }
+
+        private async void DeleteButton_OnClick(object sender, RoutedEventArgs e) {
+            await _messageRepository.DeleteChat(_selectedChat.Id);
         }
     }
 }

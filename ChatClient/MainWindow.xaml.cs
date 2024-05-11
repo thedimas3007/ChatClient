@@ -45,7 +45,7 @@ namespace ChatClient {
             }
 
             if (NavigationViewControl.MenuItems.Count > 0) {
-                NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().First();
+                NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().FirstOrDefault();
             }
             SetTitleBar(AppTitleBar);
 
@@ -64,18 +64,23 @@ namespace ChatClient {
 
             _messageRepository.ChatDeleted += (_, id) => {
                 var items = NavigationViewControl.MenuItems;
-                for (int i = 0; i < items.Count(); i++) {
+                for (int i = 0; i < items.Count; i++) {
                     var item = (NavigationViewItem)items[i];
                     if ((int)item.Tag == id) {
                         items.RemoveAt(i);
                     }
                 }
+
+                NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().FirstOrDefault();
             };
         }
 
         private async void NavigationViewControl_OnSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args) {
-            string selection = args.SelectedItemContainer?.Tag?.ToString();
-            if (selection == null) { return; }
+            var selection = ((NavigationViewItem)sender.SelectedItem)?.Tag?.ToString();
+            if (selection == null) {
+                ContentFrame.Navigate(typeof(Page), null, new EntranceNavigationTransitionInfo());
+                return;
+            }
             Type selectedPage;
             object parameter = null;
             
@@ -99,7 +104,7 @@ namespace ChatClient {
             Chat newChat = await _messageRepository.CreateChat("New Chat");
             ChatParams chatParams = new ChatParams(_messageRepository, newChat);
             //ContentFrame.Navigate(typeof(Views.ChatPage), chatParams, new EntranceNavigationTransitionInfo());
-            NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().First();
+            NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().FirstOrDefault();
         }
     }
 }

@@ -53,10 +53,8 @@ namespace ChatClient.Views {
         }
 
         public SettingsPage() {
-            Debug.Print(_localSettings.Values["OpenaiTokenVerified"].ToString());
             OpenaiVerified = (bool)(_localSettings.Values["OpenaiTokenVerified"] ?? false);
-            this.InitializeComponent();
-            Debug.Print("Hello!");
+            InitializeComponent();
         }
 
         private void OnPropertyChanged(string propertyName) {
