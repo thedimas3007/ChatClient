@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <Page
     x:Class="ChatClient.Views.SettingsPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="using:CommunityToolkit.WinUI.Controls"
-    xmlns:local="using:ChatClient.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:ui="using:CommunityToolkit.WinUI"
@@ -35,13 +35,12 @@
                                                  Width="500"
                                                  Margin="15,0"
                                                  PasswordChanged="OpenaiToken_OnPasswordChanged"
-                                                 Password="{x:Bind _localSettings.Values['OpenaiToken'], Mode=OneTime}">
-                                    </PasswordBox>
+                                                 Password="{x:Bind _localSettings.Values['OpenaiToken']}" />
 
                                     <Button x:Name="OpenaiTokenButton"
                                             Style="{ThemeResource AccentButtonStyle}"
                                             Content="{x:Bind OpenaiVerified, Mode=OneWay, Converter={StaticResource BoolToIconConverter}}"
-                                            Click="OpenaiTokenButton_OnClick"/>
+                                            Click="OpenaiTokenButton_OnClick" />
                                 </StackPanel>
                             </controls:SettingsCard>
                         </Grid>
@@ -50,7 +49,7 @@
 
                 <controls:SettingsCard Header="App Directory"
                                        HeaderIcon="{ui:FontIcon Glyph=&#xE8B7;}">
-                    <Button x:Name="HomeButton" Content="Open" Click="HomeButton_OnClick"/>
+                    <Button x:Name="HomeButton" Content="Open" Click="HomeButton_OnClick" />
                 </controls:SettingsCard>
             </StackPanel>
         </ScrollViewer>

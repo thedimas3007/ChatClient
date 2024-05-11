@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
+
 <Page
     x:Class="ChatClient.Views.ChatPage"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:controls="using:CommunityToolkit.WinUI.Controls"
-    xmlns:local="using:ChatClient.Views"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
@@ -51,7 +50,7 @@
                                    FontWeight="Bold"
                                    Margin="60,20"
                                    VerticalAlignment="Center"
-                                   Visibility="Visible"/>
+                                   Visibility="Visible" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="1"
@@ -91,7 +90,7 @@
                 </ItemsPanelTemplate>
             </ListView.ItemsPanel>
         </ListView>
-        
+
         <!-- Input -->
         <Grid Grid.Row="1"
               Margin="45,0,45,15"
@@ -115,9 +114,8 @@
                      x:Name="MessageBox"
                      Margin="10,0"
                      KeyDown="MessageBox_OnKeyDown"
-                     IsEnabled="{x:Bind Generating, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}">
-            </TextBox>
-            
+                     IsEnabled="{x:Bind Generating, Mode=OneWay, Converter={StaticResource BoolNegationConverter}}" />
+
             <Button x:Name="SendButton"
                     Grid.Column="2"
                     VerticalAlignment="Center"
