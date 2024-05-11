@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -14,20 +16,67 @@ using System.Xml;
 using WinRT;
 using OpenAI.ObjectModels.ResponseModels;
 using System.Data;
+using System.Runtime.CompilerServices;
 using File = System.IO.File;
 
 namespace ChatClient.Repositories {
-    class Chat {
-        public int Id;
-        public string Title;
-        public DateTime CreatedAt;
-        public DateTime LastAccessed;
-        
+    class Chat : INotifyPropertyChanged {
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        private int _id;
+        private string _title;
+        private DateTime _createdAt;
+        private DateTime _lastAccessed;
+
+        public int Id {
+            get { return _id; }
+            set {
+                if (_id != value) {
+                    _id = value;
+                    OnPropertyChanged(nameof(Id));
+                }
+            }
+        }
+
+        public string Title {
+            get { return _title; }
+            set {
+                if (_title != value) {
+                    _title = value;
+                    OnPropertyChanged(nameof(Title));
+                }
+            }
+        }
+
+        public DateTime CreatedAt {
+            get { return _createdAt; }
+            set {
+                if (_createdAt != value) {
+                    _createdAt = value;
+                    OnPropertyChanged(nameof(CreatedAt));
+                }
+            }
+        }
+
+        public DateTime LastAccessed {
+            get { return _lastAccessed; }
+            set {
+                if (_lastAccessed != value) {
+                    _lastAccessed = value;
+                    OnPropertyChanged(nameof(LastAccessed));
+                }
+            }
+        }
+
         public Chat(int id, string title, DateTime? createdAt, DateTime? lastAccessed) {
             Id = id;
             Title = title;
             CreatedAt = createdAt ?? DateTime.Now;
             LastAccessed = lastAccessed ?? DateTime.Now;
+        }
+
+        private void OnPropertyChanged(string propertyName) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
     }
 
@@ -53,18 +102,27 @@ namespace ChatClient.Repositories {
         }
 
         public ChatMessage AsChatMessage() {
-            return new ChatMessage(Role.ToString().ToLower(), Content, Name, ToolCalls, ToolCallId);
+            return new ChatMessage(Role, Content, Name, ToolCalls, ToolCallId);
         }
     }
 
-    class MessageRepository {
-        private StorageFolder _localFolder = ApplicationData.Current.LocalFolder;
+    class MessageRepository : INotifyPropertyChanged {
+        public event PropertyChangedEventHandler PropertyChanged;
+        public event EventHandler<Chat> ChatCreated;
+        public event EventHandler<int> ChatDeleted;
+
         private string _databasePath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "chatData.db");
         private SqliteConnection _connection;
-        
+        private ObservableCollection<Chat> _chats;
+
+        public ObservableCollection<Chat> Chats {
+            set { _chats = value; }
+            get { return _chats; }
+        }
+
         public MessageRepository() {
             if (!File.Exists(_databasePath)) {
-                File.Create(_databasePath);
+                File.Create(_databasePath).Close();
             }
 
             _connection = new SqliteConnection($"Filename={_databasePath}");
@@ -89,6 +147,12 @@ namespace ChatClient.Repositories {
                 createdAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
             );", _connection); 
             createMessageTableCommand.ExecuteNonQuery();
+
+            _chats = new ObservableCollection<Chat>(GetChats().GetAwaiter().GetResult().OrderBy(c => c.LastAccessed));
+        }
+
+        private void OnPropertyChanged(string propertyName) {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
         #region Chats
@@ -119,7 +183,7 @@ namespace ChatClient.Repositories {
             if (!reader.HasRows) return null;
 
             reader.Read();
-            await UpdateChat(id, "lastAccessed", DateTime.Now);
+            //await UpdateChat(id, "lastAccessed", DateTime.Now);
             return new Chat(reader.GetInt32(0), reader.GetString(1), reader.GetDateTime(2), reader.GetDateTime(3));
         }
 
@@ -130,27 +194,69 @@ namespace ChatClient.Repositories {
             insertChatCommand.Parameters.AddWithValue("@Title", title);
 
             int id = Convert.ToInt32(await insertChatCommand.ExecuteScalarAsync());
-            return await GetChat(id);
+            Chat chat = await GetChat(id);
+            Chats.Add(chat);
+            Chats = new ObservableCollection<Chat>(Chats.OrderBy(c => c.LastAccessed));
+            ChatCreated?.Invoke(this, chat);
+            return chat;
         }
 
-        public async Task UpdateChat(int id, string key, object value) {
+        public async Task<Chat> UpdateChat(int id, string key, object value) {
             var updateChatCommand = new SqliteCommand($"UPDATE chat SET {key} = @Value WHERE Id = @Id;", _connection);
             updateChatCommand.Parameters.AddWithValue("@Id", id);
-            updateChatCommand.Parameters.AddWithValue("@Value", value != null ? value : DBNull.Value);
-
+            updateChatCommand.Parameters.AddWithValue("@Value", value);
             await updateChatCommand.ExecuteNonQueryAsync();
+
+            var chat = Chats.FirstOrDefault(c => c.Id == id);
+            if (chat != null) {
+                switch (key) {
+                    case "title":
+                        chat.Title = (string)value;
+                        break;
+                    case "createdAt":
+                        chat.CreatedAt = (DateTime)value;
+                        break;
+                    case "lastAccessed":
+                        chat.LastAccessed = (DateTime)value;
+                        Chats = new ObservableCollection<Chat>(Chats.OrderBy(c => c.LastAccessed));
+                        break;
+                    default:
+                        throw new ArgumentException($"Invalid key '{key}' for updating chat properties.");
+                }
+
+                OnPropertyChanged(nameof(Chats));
+            }
+            return chat;
         }
 
         public async Task DeleteChat(int id) {
             var deleteChatCommand = new SqliteCommand(@"DELETE FROM chat WHERE Id = @Id;", _connection);
             deleteChatCommand.Parameters.AddWithValue("@Id", id);
 
+            for (int i = 0; i < Chats.Count; i++) {
+                if (Chats[i].Id == id) {
+                    Chats.RemoveAt(i);
+                    break;
+                }
+            }
+
+            ChatDeleted?.Invoke(this, id);
             await deleteChatCommand.ExecuteNonQueryAsync();
         }
 
         #endregion
 
         #region Messages
+
+        public async Task<bool> HasMessages(int chatId) {
+            List<Message> messages = await GetMessages(chatId);
+            foreach (Message message in messages) {
+                if (message.Role == "user" || message.Role == "assistant") { // not sure whether to include 'tool' messages 
+                    return true;
+                }
+            }
+            return false;
+        }
 
         public async Task<List<Message>> GetMessages(int chatId) {
             if (!await ChatExists(chatId)) throw new KeyNotFoundException($"Chat with ID {chatId} does not exist.");

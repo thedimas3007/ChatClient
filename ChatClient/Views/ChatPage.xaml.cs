@@ -25,6 +25,7 @@ using Windows.Storage;
 using Windows.System;
 using Windows.UI.Core.AnimationMetrics;
 using ChatClient.Repositories;
+using ChatClient.Types;
 using OpenAI;
 using OpenAI.Managers;
 using OpenAI.ObjectModels;
@@ -43,8 +44,8 @@ namespace ChatClient.Views {
 
         private ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
         private OpenAIService _openaiApi;
-        private MessageRepository _messageRepository = new MessageRepository();
-        private Chat _selectedChat = new(-1, "New Chat", DateTime.Now, DateTime.Now);
+        private MessageRepository _messageRepository;
+        private Chat _selectedChat;
         private bool _generating = false;
 
         private Chat SelectedChat {
@@ -94,7 +95,9 @@ namespace ChatClient.Views {
 
         protected override async void OnNavigatedTo(NavigationEventArgs e) {
             if (e.Parameter != null) {
-                SelectedChat = await _messageRepository.GetChat((int)e.Parameter);
+                ChatParams chatParams = (ChatParams)e.Parameter;
+                _messageRepository = chatParams.Repository;
+                SelectedChat = chatParams.Chat;
             }
             base.OnNavigatedTo(e);
         }
@@ -162,9 +165,9 @@ namespace ChatClient.Views {
                 return;
             }
             
-            if (SelectedChat.Id == -1) {
-                SelectedChat = await _messageRepository.CreateChat(await GenerateTitle(text));
-                HeaderTextBlock.Text = SelectedChat.Title;
+            if (!await _messageRepository.HasMessages(SelectedChat.Id)) {
+                 _messageRepository.UpdateChat(SelectedChat.Id, "title", await GenerateTitle(text));
+                //HeaderTextBlock.Text = SelectedChat.Title;
             }
             
             Generating = true;

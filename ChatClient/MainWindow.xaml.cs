@@ -16,6 +16,8 @@ using System.Threading.Tasks;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
 using ChatClient.Repositories;
+using ChatClient.Types;
+using System.Reflection.Metadata;
 
 // To learn more about WinUI, the WinUI project structure,
 // and more about our project templates, see: http://aka.ms/winui-project-info.
@@ -27,37 +29,61 @@ namespace ChatClient {
         public MainWindow() {
             InitializeComponent();
             ExtendsContentIntoTitleBar = true;
-            NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().First();
-            SetTitleBar(AppTitleBar);
-            LoadChats().GetAwaiter().GetResult();
-        }
 
-        private async Task LoadChats() {
-            var chats = await _messageRepository.GetChats();
-            foreach (var chat in chats) {
-                HistoryNavigationItem.MenuItems.Add(new NavigationViewItem() {
-                    Content = chat.Title,
-                    Tag = $"OpenChat-{chat.Id}",
-                    Icon = new FontIcon() {
-                        Glyph = "\uE8F2"
-                    }
+            NavigationViewControl.MenuItems.Clear();
+            foreach (var chat in _messageRepository.Chats) {
+                var item = new NavigationViewItem() {
+                    Tag = chat.Id,
+                    Icon = new FontIcon { Glyph = "\uE8BD" }
+                };
+                item.SetBinding(NavigationViewItem.ContentProperty, new Binding() {
+                    Path = new PropertyPath("Title"),
+                    Mode = BindingMode.OneWay,
+                    Source = chat
                 });
+                NavigationViewControl.MenuItems.Add(item);
             }
 
+            if (NavigationViewControl.MenuItems.Count > 0) {
+                NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().First();
+            }
+            SetTitleBar(AppTitleBar);
+
+            _messageRepository.ChatCreated += (_, chat) => {
+                var item = new NavigationViewItem() {
+                    Tag = chat.Id,
+                    Icon = new FontIcon { Glyph = "\uE8BD" }
+                };
+                item.SetBinding(NavigationViewItem.ContentProperty, new Binding() {
+                    Path = new PropertyPath("Title"),
+                    Mode = BindingMode.OneWay,
+                    Source = chat
+                });
+                NavigationViewControl.MenuItems.Insert(0, item);
+            };
+
+            _messageRepository.ChatDeleted += (_, id) => {
+                var items = NavigationViewControl.MenuItems;
+                for (int i = 0; i < items.Count(); i++) {
+                    var item = (NavigationViewItem)items[i];
+                    if ((int)item.Tag == id) {
+                        items.RemoveAt(i);
+                    }
+                }
+            };
         }
 
-        private void NavigationViewControl_OnSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args) {
-            string selection = args.SelectedItemContainer.Tag?.ToString();
+        private async void NavigationViewControl_OnSelectionChanged(NavigationView sender, NavigationViewSelectionChangedEventArgs args) {
+            string selection = args.SelectedItemContainer?.Tag?.ToString();
             if (selection == null) { return; }
-            NavigationViewControl.IsBackEnabled = ContentFrame.CanGoBack;
             Type selectedPage;
             object parameter = null;
+            
             if (selection == "Settings") {
                 selectedPage = typeof(Views.SettingsPage);
-            } else if (selection.StartsWith("OpenChat")) {
+            } else if (Int32.TryParse(selection, result: out _)) {
                 selectedPage = typeof(Views.ChatPage);
-                int id = Int32.Parse(selection.Split('-')[1]);
-                parameter = id;
+                parameter = new ChatParams(_messageRepository, await _messageRepository.GetChat(int.Parse(selection)));
             } else {
                 selectedPage = Type.GetType(selection);
             }
@@ -67,12 +93,13 @@ namespace ChatClient {
             }
 
             ContentFrame.Navigate(selectedPage, parameter, new EntranceNavigationTransitionInfo());
-            //NavigationViewControl.Header = ((NavigationViewItem)NavigationViewControl.SelectedItem)?.Content?.ToString();
         }
 
-        private void NavigationViewControl_OnBackRequested(NavigationView sender, NavigationViewBackRequestedEventArgs args) {
-            if (ContentFrame.CanGoBack) ContentFrame.GoBack();
+        private async void NewChatButton_OnClick(object sender, RoutedEventArgs e) {
+            Chat newChat = await _messageRepository.CreateChat("New Chat");
+            ChatParams chatParams = new ChatParams(_messageRepository, newChat);
+            //ContentFrame.Navigate(typeof(Views.ChatPage), chatParams, new EntranceNavigationTransitionInfo());
+            NavigationViewControl.SelectedItem = NavigationViewControl.MenuItems.OfType<NavigationViewItem>().First();
         }
-
     }
 }

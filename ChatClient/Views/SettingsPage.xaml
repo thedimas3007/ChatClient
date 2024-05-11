@@ -22,8 +22,7 @@
     <Grid>
         <ScrollViewer Margin="45,26,45,0">
             <StackPanel>
-                <controls:SettingsExpander x:Name="SettingsCard"
-                                           Header="Tokens"
+                <controls:SettingsExpander Header="Tokens"
                                            Description="Press the button next to the input to verify and save tokens. Cross - unverified, Tick - verified"
                                            HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}">
                     <controls:SettingsExpander.Items>

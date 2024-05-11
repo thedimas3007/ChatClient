@@ -6,6 +6,7 @@
     xmlns:local="using:ChatClient"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:repositories="using:ChatClient.Repositories"
     mc:Ignorable="d">
     <Window.SystemBackdrop>
         <MicaBackdrop></MicaBackdrop>
@@ -38,22 +39,21 @@
 
         <NavigationView Name="NavigationViewControl" 
                         SelectionChanged="NavigationViewControl_OnSelectionChanged"
-                        BackRequested="NavigationViewControl_OnBackRequested"
-                        IsTitleBarAutoPaddingEnabled="True">
-            <NavigationView.MenuItems>
-                <NavigationViewItem Content="Chat" Tag="ChatClient.Views.ChatPage">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE8BD;"/>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-
-                <NavigationViewItem x:Name="HistoryNavigationItem" Content="History" Tag="ChatClient.Views.HistoryPage">
-                    <NavigationViewItem.Icon>
-                        <FontIcon Glyph="&#xE81C;"></FontIcon>
-                    </NavigationViewItem.Icon>
-                </NavigationViewItem>
-            </NavigationView.MenuItems>
+                        IsBackButtonVisible="Collapsed"
+                        IsBackEnabled="False">
             <Frame x:Name="ContentFrame"/>
+            <NavigationView.PaneFooter>
+                <Button x:Name="NewChatButton"
+                        Style="{ThemeResource AccentButtonStyle}"
+                        Margin="15,0"
+                        HorizontalAlignment="Stretch"
+                        Click="NewChatButton_OnClick">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <FontIcon FontSize="16" Glyph="&#xE932;" />
+                        <TextBlock Text="New chat" />
+                    </StackPanel>
+                </Button>
+            </NavigationView.PaneFooter>
         </NavigationView>
     </Grid>
 </Window>
