@@ -7,8 +7,8 @@ on:
     branches: ['master']
 
 jobs:
-
-  build:
+  build-x86:
+    name: Build x86
     runs-on: windows-latest
     
     steps:
@@ -23,20 +23,36 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore ChatClient/ChatClient.csproj
       
-    - name: Build (x86)
+    - name: Build
       run: dotnet build --no-restore --configuration Debug --output ./bin/x86 /p:Platform=x86 ChatClient/ChatClient.csproj
       
-    - name: Build (x64)
-      run: dotnet build --no-restore --configuration Debug --output ./bin/x64 /p:Platform=x64 ChatClient/ChatClient.csproj
-      
-    - name: Upload Artifacts (x86)
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: Debug-x86
         path: ./bin/x86
         retention-days: 7
+
+  build-x64:
+    name: Build x64
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
         
-    - name: Upload Artifacts (x64)
+    - name: Restore dependencies
+      run: dotnet restore ChatClient/ChatClient.csproj
+      
+    - name: Build
+      run: dotnet build --no-restore --configuration Debug --output ./bin/x64 /p:Platform=x64 ChatClient/ChatClient.csproj
+      
+    - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: Debug-x64
