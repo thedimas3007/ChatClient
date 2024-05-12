@@ -35,11 +35,11 @@
                                                  Width="500"
                                                  Margin="15,0"
                                                  PasswordChanged="OpenaiToken_OnPasswordChanged"
-                                                 Password="{x:Bind _localSettings.Values['OpenaiToken']}" />
+                                                 Password="{x:Bind _settingsProvider.OpenAiToken, Mode=OneWay}"/>
 
                                     <Button x:Name="OpenaiTokenButton"
                                             Style="{ThemeResource AccentButtonStyle}"
-                                            Content="{x:Bind OpenaiVerified, Mode=OneWay, Converter={StaticResource BoolToIconConverter}}"
+                                            Content="{x:Bind _settingsProvider.OpenAiTokenVerified, Mode=OneWay, Converter={StaticResource BoolToIconConverter}}"
                                             Click="OpenaiTokenButton_OnClick" />
                                 </StackPanel>
                             </controls:SettingsCard>

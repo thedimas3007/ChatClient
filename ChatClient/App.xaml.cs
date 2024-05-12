@@ -1,4 +1,8 @@
-﻿using Microsoft.UI.Xaml;
+﻿using Windows.Storage;
+using Microsoft.UI.Xaml;
+using System;
+using System.Configuration;
+using System.IO;
 
 namespace ChatClient;
 
@@ -11,6 +15,11 @@ public partial class App : Application {
     /// </summary>
     public App() {
         InitializeComponent();
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string localDir = Path.Join(appData, "ChatClient");
+        if (!Directory.Exists(localDir)) {
+            Directory.CreateDirectory(localDir);
+        }
     }
 
     /// <summary>

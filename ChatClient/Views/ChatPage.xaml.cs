@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Storage;
 using Windows.System;
 using Windows.UI;
+using ChatClient.Providers;
 using ChatClient.Repositories;
 using ChatClient.Types;
 using CommunityToolkit.WinUI.UI.Controls;
@@ -24,17 +24,13 @@ namespace ChatClient.Views;
 
 public sealed partial class ChatPage : Page, INotifyPropertyChanged {
     private bool _generating;
-
-    private readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
     private MessageRepository _messageRepository;
-    private readonly OpenAIService _openaiApi;
+    private SettingsProvider _settingsProvider;
+    private OpenAIService _openaiApi;
     private Chat _selectedChat;
 
     public ChatPage() {
         InitializeComponent();
-        _openaiApi = new OpenAIService(new OpenAiOptions {
-            ApiKey = _localSettings.Values["openaiToken"].ToString()
-        });
         PropertyChanged += ChatPage_PropertyChanged;
     }
 
@@ -78,6 +74,10 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         if (e.Parameter != null) {
             var chatParams = (ChatParams)e.Parameter;
             _messageRepository = chatParams.Repository;
+            _settingsProvider = chatParams.Settings;
+            _openaiApi = new OpenAIService(new OpenAiOptions {
+                ApiKey = _settingsProvider.OpenAiToken ?? "not-set"
+            });
             SelectedChat = chatParams.Chat;
         }
 
@@ -97,7 +97,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                 ChatMessage.FromUser(startMessage)
             },
             Model = Models.Gpt_3_5_Turbo,
-            MaxTokens = 64 // probably increase for non-English languages
+            MaxTokens = 16 // probably increase for non-English languages
         });
         return response.Choices[0].Message.Content;
     }
@@ -135,9 +135,9 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
     }
 
     private async void SendButton_OnClick(object sender, RoutedEventArgs e) {
-        if (!(bool)_localSettings.Values["OpenaiTokenVerified"]) {
+        if (!_settingsProvider.OpenAiTokenVerified || _settingsProvider.OpenAiToken == null) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
-            NotificationQueue.Show("Token is either invalid or unset", 2000);
+            NotificationQueue.Show("Token is either invalid or not set", 2000);
             return;
         }
 

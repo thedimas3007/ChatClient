@@ -1,10 +1,14 @@
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using Windows.Storage;
+using System.IO;
+using ChatClient.Providers;
+using ChatClient.Repositories;
+using ChatClient.Types;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Navigation;
 using OpenAI;
 using OpenAI.Managers;
 
@@ -22,39 +26,27 @@ public class BoolToFontIconConverter : IValueConverter {
     }
 }
 
-public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
-    private readonly ApplicationDataContainer _localSettings = ApplicationData.Current.LocalSettings;
-    private bool _openaiVerified;
+public sealed partial class SettingsPage : Page {
+    private SettingsProvider _settingsProvider;
 
     public SettingsPage() {
-        OpenaiVerified = (bool)(_localSettings.Values["OpenaiTokenVerified"] ?? false);
         InitializeComponent();
     }
-
-    public bool OpenaiVerified {
-        get => _openaiVerified;
-        set {
-            if (_openaiVerified != value) {
-                _openaiVerified = value;
-                _localSettings.Values["OpenaiTokenVerified"] = value;
-                OnPropertyChanged(nameof(OpenaiVerified));
-            }
+    protected override void OnNavigatedTo(NavigationEventArgs e) {
+        if (e.Parameter != null) {
+            _settingsProvider = (SettingsProvider)e.Parameter; ;
         }
-    }
 
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    private void OnPropertyChanged(string propertyName) {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        base.OnNavigatedTo(e);
     }
 
     private void HomeButton_OnClick(object sender, RoutedEventArgs e) {
-        Process.Start("explorer.exe", ApplicationData.Current.LocalFolder.Path);
+        Process.Start("explorer.exe", _settingsProvider.LocalDir);
     }
 
     private async void OpenaiTokenButton_OnClick(object sender, RoutedEventArgs e) {
         var openAiService = new OpenAIService(new OpenAiOptions {
-            ApiKey = OpenaiToken.Password
+            ApiKey = OpenaiToken.Password ?? "not-set"
         });
         OpenaiTokenButton.IsEnabled = false;
         try {
@@ -66,13 +58,13 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             }
 
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
-            _localSettings.Values["OpenaiToken"] = OpenaiToken.Password;
-            OpenaiVerified = true;
+            _settingsProvider.OpenAiToken = OpenaiToken.Password;
+            _settingsProvider.OpenAiTokenVerified = true;
             NotificationQueue.Show("Token verified", 2000);
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
-            OpenaiVerified = false;
+            _settingsProvider.OpenAiTokenVerified = false;
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
         }
@@ -81,6 +73,6 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
     }
 
     private void OpenaiToken_OnPasswordChanged(object sender, RoutedEventArgs e) {
-        OpenaiVerified = false;
+        _settingsProvider.OpenAiTokenVerified = false;
     }
 }

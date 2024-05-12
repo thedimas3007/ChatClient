@@ -104,10 +104,13 @@ internal class Message {
 
 internal class MessageRepository : INotifyPropertyChanged {
     private readonly SqliteConnection _connection;
-
-    private readonly string _databasePath = Path.Combine(ApplicationData.Current.LocalFolder.Path, "chatData.db");
+    private readonly string _databasePath;
 
     public MessageRepository() {
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string localDir = Path.Combine(appData, "ChatClient");
+        _databasePath = Path.Combine(localDir, "chatData.db");
+
         if (!File.Exists(_databasePath)) File.Create(_databasePath).Close();
 
         _connection = new SqliteConnection($"Filename={_databasePath}");

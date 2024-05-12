@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using ChatClient.Providers;
 using ChatClient.Repositories;
 using ChatClient.Types;
 using ChatClient.Views;
@@ -12,6 +13,7 @@ namespace ChatClient;
 
 public sealed partial class MainWindow : Window {
     private readonly MessageRepository _messageRepository = new();
+    private readonly SettingsProvider _settingsProvider = new();
 
     public MainWindow() {
         InitializeComponent();
@@ -74,9 +76,10 @@ public sealed partial class MainWindow : Window {
 
         if (selection == "Settings") {
             selectedPage = typeof(SettingsPage);
+            parameter = _settingsProvider;
         } else if (int.TryParse(selection, out _)) {
             selectedPage = typeof(ChatPage);
-            parameter = new ChatParams(_messageRepository, await _messageRepository.GetChat(int.Parse(selection)));
+            parameter = new ChatParams(_messageRepository, _settingsProvider, await _messageRepository.GetChat(int.Parse(selection)));
         } else {
             selectedPage = Type.GetType(selection);
         }
@@ -88,7 +91,7 @@ public sealed partial class MainWindow : Window {
 
     private async void NewChatButton_OnClick(object sender, RoutedEventArgs e) {
         var newChat = await _messageRepository.CreateChat("New Chat");
-        var chatParams = new ChatParams(_messageRepository, newChat);
+        var chatParams = new ChatParams(_messageRepository, _settingsProvider, newChat);
         //ContentFrame.Navigate(typeof(Views.ChatPage), chatParams, new EntranceNavigationTransitionInfo());
         NavigationViewControl.SelectedItem =
             NavigationViewControl.MenuItems.OfType<NavigationViewItem>().FirstOrDefault();
