@@ -24,13 +24,13 @@ jobs:
       run: dotnet restore ChatClient/ChatClient.csproj
       
     - name: Build
-      run: dotnet build --no-restore --configuration Debug --output ./bin/x86 /p:Platform=x86 ChatClient/ChatClient.csproj
+      run: dotnet build --no-restore --configuration Debug --output ./bin/x86 -p:PublishSingleFile=true -p:Platform=x86 ChatClient/ChatClient.csproj
       
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: Debug-x86
-        path: ./bin/x86
+        path: ./bin/x86/ChatClient.exe
         retention-days: 7
 
   build-x64:
@@ -50,11 +50,11 @@ jobs:
       run: dotnet restore ChatClient/ChatClient.csproj
       
     - name: Build
-      run: dotnet build --no-restore --configuration Debug --output ./bin/x64 /p:Platform=x64 ChatClient/ChatClient.csproj
+      run: dotnet build --no-restore --configuration Debug --output ./bin/x64 -p:PublishSingleFile=true -p:Platform=x64 ChatClient/ChatClient.csproj
       
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
         name: Debug-x64
-        path: ./bin/x64
+        path: ./bin/x64/ChatClient.exe
         retention-days: 7
