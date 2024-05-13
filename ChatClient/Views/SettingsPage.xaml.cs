@@ -2,6 +2,8 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
+using ChatClient.Controls;
 using ChatClient.Providers;
 using ChatClient.Repositories;
 using ChatClient.Types;
@@ -32,9 +34,11 @@ public sealed partial class SettingsPage : Page {
     public SettingsPage() {
         InitializeComponent();
     }
+
     protected override void OnNavigatedTo(NavigationEventArgs e) {
         if (e.Parameter != null) {
-            _settingsProvider = (SettingsProvider)e.Parameter; ;
+            _settingsProvider = (SettingsProvider)e.Parameter;
+            ;
         }
 
         base.OnNavigatedTo(e);
@@ -44,7 +48,7 @@ public sealed partial class SettingsPage : Page {
         Process.Start("explorer.exe", _settingsProvider.LocalDir);
     }
 
-    private async void OpenaiTokenButton_OnClick(object sender, RoutedEventArgs e) {
+    /*private async void OpenaiTokenButton_OnClick(object sender, RoutedEventArgs e) {
         var openAiService = new OpenAIService(new OpenAiOptions {
             ApiKey = OpenaiToken.Password ?? "not-set"
         });
@@ -70,9 +74,34 @@ public sealed partial class SettingsPage : Page {
         }
 
         OpenaiTokenButton.IsEnabled = true;
-    }
+    }*/
 
-    private void OpenaiToken_OnPasswordChanged(object sender, RoutedEventArgs e) {
-        _settingsProvider.OpenAiTokenVerified = false;
+    private async void OpenAiTokenInput_OnTokenVerificationRequested(object sender, string e) {
+        TokenInput tokenInput = (TokenInput)sender;
+        var openAiService = new OpenAIService(new OpenAiOptions {
+            ApiKey = string.IsNullOrEmpty(tokenInput.Token) ? "non-set" : tokenInput.Token,
+        });
+        tokenInput.IsEnabled = false;
+        try {
+            var result = await openAiService.Models.ListModel();
+            tokenInput.IsEnabled = true;
+            if (!result.Successful) {
+                Debug.Fail(result.Error?.Message);
+                return;
+            }
+
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
+            _settingsProvider.OpenAiToken = tokenInput.Token;
+            _settingsProvider.OpenAiTokenVerified = true;
+            NotificationQueue.Show("Token verified", 2000);
+        } catch (Exception ex) {
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
+            NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
+            _settingsProvider.OpenAiTokenVerified = false;
+            Debug.Print("Unable to verify token");
+            Debug.Print(ex.StackTrace);
+        }
+
+        tokenInput.IsEnabled = true;
     }
 }

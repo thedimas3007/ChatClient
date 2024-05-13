@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
@@ -76,7 +77,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             _messageRepository = chatParams.Repository;
             _settingsProvider = chatParams.Settings;
             _openaiApi = new OpenAIService(new OpenAiOptions {
-                ApiKey = _settingsProvider.OpenAiToken ?? "not-set"
+                ApiKey = string.IsNullOrEmpty(_settingsProvider.OpenAiToken) ? "non-set" : _settingsProvider.OpenAiToken,
             });
             SelectedChat = chatParams.Chat;
         }

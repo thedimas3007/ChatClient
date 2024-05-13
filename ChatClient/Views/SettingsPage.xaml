@@ -11,6 +11,7 @@
     xmlns:converters="using:CommunityToolkit.WinUI.UI.Converters"
     xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
+    xmlns:controls1="using:ChatClient.Controls"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -27,8 +28,7 @@
                                            HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}">
                     <controls:SettingsExpander.Items>
                         <Grid BorderThickness="0">
-                            <controls:SettingsCard Header="OpenAI">
-                                <!-- TODO: token input control -->
+                            <!--<controls:SettingsCard Header="OpenAI">
                                 <StackPanel Orientation="Horizontal">
                                     <PasswordBox x:Name="OpenaiToken"
                                                  PlaceholderText="OpenAI token"
@@ -42,7 +42,13 @@
                                             Content="{x:Bind _settingsProvider.OpenAiTokenVerified, Mode=OneWay, Converter={StaticResource BoolToIconConverter}}"
                                             Click="OpenaiTokenButton_OnClick" />
                                 </StackPanel>
-                            </controls:SettingsCard>
+                            </controls:SettingsCard>-->
+
+                            <controls1:TokenInput x:Name="OpenAiTokenInput"
+                                                  Header="OpenAI"
+                                                  Token="{x:Bind _settingsProvider.OpenAiToken, Mode=OneWay}"
+                                                  TokenVerified="{x:Bind _settingsProvider.OpenAiTokenVerified, Mode=TwoWay}"
+                                                  TokenVerificationRequested="OpenAiTokenInput_OnTokenVerificationRequested"/>
                         </Grid>
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
