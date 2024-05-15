@@ -29,7 +29,8 @@ public class BoolToFontIconConverter : IValueConverter {
 }
 
 public sealed partial class SettingsPage : Page {
-    private SettingsProvider _settingsProvider;
+    public double Increment => 0.01;
+    private SettingsProvider _settingsProvider; 
 
     public SettingsPage() {
         InitializeComponent();
@@ -103,5 +104,12 @@ public sealed partial class SettingsPage : Page {
         }
 
         tokenInput.IsEnabled = true;
+    }
+
+    private void ResetButton_OnClick(object sender, RoutedEventArgs e) {
+        _settingsProvider.Temperature = 1f;
+        _settingsProvider.TopP = 1f;
+        _settingsProvider.FrequencyPenalty = 0f;
+        _settingsProvider.PresencePenalty = 0f;
     }
 }

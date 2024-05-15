@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 using ABI.Windows.System.Threading;
 
 namespace ChatClient.Providers {
-    internal class SettingsProvider : INotifyPropertyChanged {
+    internal class SettingsProvider : INotifyPropertyChanged { // Probably create also separate class to store settings, IDK
         private readonly string _localDir;
         private readonly string _configPath;
         private readonly string _filename;
@@ -43,6 +43,38 @@ namespace ChatClient.Providers {
             set {
                 SetProperty("OpenAI-Token-Verified", value);
                 OnPropertyChanged(nameof(OpenAiTokenVerified));
+            }
+        }
+
+        public float Temperature {
+            get => GetProperty<float?>("Model-Temperature") ?? 1f;
+            set {
+                SetProperty("Model-Temperature", value);
+                OnPropertyChanged(nameof(Temperature));
+            }
+        }
+
+        public float TopP {
+            get => GetProperty<float?>("Model-TopP") ?? 1f;
+            set {
+                SetProperty("Model-TopP", value);
+                OnPropertyChanged(nameof(TopP));
+            }
+        }
+
+        public float FrequencyPenalty {
+            get => GetProperty<float?>("Model-FrequencyPenalty") ?? 0f;
+            set {
+                SetProperty("Model-FrequencyPenalty", value);
+                OnPropertyChanged(nameof(FrequencyPenalty));
+            }
+        }
+
+        public float PresencePenalty {
+            get => GetProperty<float?>("Model-PresencePenalty") ?? 0f;
+            set {
+                SetProperty("Model-PresencePenalty", value);
+                OnPropertyChanged(nameof(PresencePenalty));
             }
         }
 

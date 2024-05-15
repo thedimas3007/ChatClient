@@ -110,7 +110,11 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         var response = "";
         var call = _openaiApi.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest {
             Messages = (await _messageRepository.GetMessages(SelectedChat.Id)).ConvertAll(m => m.AsChatMessage()),
-            Model = Models.Gpt_3_5_Turbo
+            Model = Models.Gpt_3_5_Turbo,
+            Temperature = _settingsProvider.Temperature,
+            TopP = _settingsProvider.TopP,
+            FrequencyPenalty = _settingsProvider.FrequencyPenalty,
+            PresencePenalty = _settingsProvider.PresencePenalty
         });
 
         await foreach (var result in call) {
