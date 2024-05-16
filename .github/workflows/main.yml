@@ -30,7 +30,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Debug-x86
-        path: ./bin/x86/ChatClient.exe
+        path: ./bin/x86/
         retention-days: 7
 
   build-x64:
@@ -56,5 +56,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: Debug-x64
-        path: ./bin/x64/ChatClient.exe
+        path: ./bin/x64/
         retention-days: 7
