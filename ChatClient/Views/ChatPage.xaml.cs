@@ -21,6 +21,8 @@ using OpenAI;
 using OpenAI.Managers;
 using OpenAI.ObjectModels;
 using OpenAI.ObjectModels.RequestModels;
+using Microsoft.UI.Input;
+using Windows.UI.Core;
 
 namespace ChatClient.Views;
 
@@ -211,7 +213,15 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
     }
 
     private void MessageBox_OnKeyDown(object sender, KeyRoutedEventArgs e) {
-        if (e.Key == VirtualKey.Enter) SendButton_OnClick(sender, e);
+        if (e.Key != VirtualKey.Enter) return;
+        bool ctrlPressed = InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control)
+            .HasFlag(CoreVirtualKeyStates.Down);
+
+        if (!ctrlPressed) {
+            SendButton_OnClick(sender, e);
+            InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down);
+            e.Handled = true;
+        }
     }
 
     private void FileButton_OnClick(object sender, RoutedEventArgs e) {
