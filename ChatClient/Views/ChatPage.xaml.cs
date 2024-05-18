@@ -63,7 +63,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             case nameof(SelectedChat):
                 ListView.Items.Clear();
                 foreach (var message in await _messageRepository.GetMessages(SelectedChat.Id))
-                    AddMessageElement(message.AsChatMessage());
+                    AddMessageElement(message.AsChatMessage(), true);
                 break;
         }
     }
@@ -139,11 +139,35 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         }
     }
 
-    private void AddMessageElement(ChatMessage message) {
+    private void AddMessageElement(ChatMessage message, bool render = false) {
+        var textBlock = new TextBlock() {
+            Text = message.Content
+        };
+
+        var border = new Border {
+            Style = (Style)Application.Current.Resources[
+                message.Role == "user" ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
+            Child = textBlock
+        };
+        ListView.Items.Add(border);
+        if (render) { RenderResult(); }
+    }
+
+    private void UpdateLastMessageElement(string token) {
+        var border = ListView.Items[^1] as Border;
+        var element = border.Child as TextBlock;
+        element.Text += token;
+        ListView.UpdateLayout();
+    }
+
+    private void RenderResult() {
+        var border = ListView.Items[^1] as Border;
+        var oldElement = border.Child as TextBlock;
+
         var textBlock = new MarkdownTextBlock {
             UseSyntaxHighlighting = true,
             Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)),
-            Text = message.Content
+            Text = oldElement.Text
         };
         textBlock.LinkClicked += async (sender, e) => { await Launcher.LaunchUriAsync(new Uri(e.Link)); };
         textBlock.ImageClicked += async (sender, e) => {
@@ -155,20 +179,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             };
             await dialog.ShowAsync();
         };
-
-        var border = new Border {
-            Style = (Style)Application.Current.Resources[
-                message.Role == "user" ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
-            Child = textBlock
-        };
-        ListView.Items.Add(border);
-    }
-
-    private void UpdateLastMessageElement(string token) {
-        var border = ListView.Items[^1] as Border;
-        var element = border.Child as MarkdownTextBlock;
-        element.Text += token;
-        ListView.UpdateLayout();
+        border.Child = textBlock;
     }
 
     private async void SendButton_OnClick(object sender, RoutedEventArgs e) {
@@ -194,6 +205,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         await _messageRepository.CreateMessage(SelectedChat.Id, message);
         Generating = true;
         await GenerateResult();
+        RenderResult();
         Generating = false;
         MessageBox.Focus(FocusState.Programmatic);
     }
