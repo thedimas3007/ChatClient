@@ -11,14 +11,12 @@ using OpenAI.ObjectModels.RequestModels;
 
 namespace ChatClient.Generation {
     internal class OpenAIProvider : GenerationProvider {
-        public static readonly Model Gpt35Turbo = new("gpt-3.5-turbo", "GPT-3.5 Turbo");
-        public static readonly Model Gpt4Turbo = new("gpt-4-turbo", "GPT-4 Turbo");
-        public static readonly Model Gpt4o = new("gpt-4o", "GPT-4o");
-        
-        public string Name = "OpenAI";
-        public static IReadOnlyList<Model> Models = new List<Model>() {
-            Gpt35Turbo, Gpt4Turbo, Gpt4o
-        };
+        public static readonly Model Gpt35Turbo = new("OpenAI", "gpt-3.5-turbo", "GPT-3.5 Turbo");
+        public static readonly Model Gpt4Turbo = new("OpenAI", "gpt-4-turbo", "GPT-4 Turbo");
+        public static readonly Model Gpt4o = new("OpenAI", "gpt-4o", "GPT-4o");
+
+        public OpenAIProvider() : 
+            base("OpenAI", new List<Model>() { Gpt35Turbo, Gpt4Turbo, Gpt4o }, true) { }
 
         private OpenAIService GetApi(string key) {
             return new OpenAIService(new OpenAiOptions() {

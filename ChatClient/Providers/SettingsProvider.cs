@@ -5,76 +5,82 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using System.Threading.Tasks;
+using ChatClient.Generation;
 
 namespace ChatClient.Providers {
-    internal class SettingsProvider : INotifyPropertyChanged { // Probably create also separate class to store settings, IDK
+    internal class SettingsProvider : INotifyPropertyChanged {
         private readonly string _localDir;
         private readonly string _configPath;
         private readonly string _filename;
         private Dictionary<string, JsonValue> _settings;
 
-        public string LocalDir {
-            get => _localDir;
+        public string LocalDir => _localDir;
+
+        public string ConfigPath => _configPath;
+
+        public string Filename => _filename;
+
+        public bool Streaming {
+            get => GetProperty<bool>("Streaming", true);
+            set => SetPropertyWithChangeCheck("Streaming", value);
         }
 
-        public string ConfigPath {
-            get => _configPath;
+        public GenerationProvider Provider {
+            get {
+                string name = GetProperty<string>("Provider");
+                if (string.IsNullOrEmpty(name)) {
+                    return GenerationProvider.Providers.FirstOrDefault();
+                }
+
+                var provider = GenerationProvider.Providers.FirstOrDefault(p => p.Name == name);
+                return provider ?? GenerationProvider.Providers.FirstOrDefault();
+            }
+            set => SetPropertyWithChangeCheck("Provider", value.Name);
         }
 
-        public string Filename {
-            get => _filename;
+        public Model Model {
+            get {
+                string id = GetProperty<string>("Model");
+                if (string.IsNullOrEmpty(id)) {
+                    return Provider.Models.FirstOrDefault();
+                }
+
+                var model = Provider.Models.FirstOrDefault(m => m.Id == id);
+                return model ?? Provider.Models.FirstOrDefault();
+            }
+            set => SetPropertyWithChangeCheck("Model", value.Id);
         }
 
         public string OpenAiToken {
             get => GetProperty<string>("OpenAI-Token");
-            set {
-                SetProperty("OpenAI-Token", value);
-                OnPropertyChanged(nameof(OpenAiToken));
-            }
+            set => SetPropertyWithChangeCheck("OpenAI-Token", value);
         }
 
         public bool OpenAiTokenVerified {
             get => GetProperty<bool>("OpenAI-Token-Verified");
-            set {
-                SetProperty("OpenAI-Token-Verified", value);
-                OnPropertyChanged(nameof(OpenAiTokenVerified));
-            }
+            set => SetPropertyWithChangeCheck("OpenAI-Token-Verified", value);
         }
 
         public float Temperature {
             get => GetProperty<float?>("Model-Temperature") ?? 1f;
-            set {
-                SetProperty("Model-Temperature", value);
-                OnPropertyChanged(nameof(Temperature));
-            }
+            set => SetPropertyWithChangeCheck("Model-Temperature", value);
         }
 
         public float TopP {
             get => GetProperty<float?>("Model-TopP") ?? 1f;
-            set {
-                SetProperty("Model-TopP", value);
-                OnPropertyChanged(nameof(TopP));
-            }
+            set => SetPropertyWithChangeCheck("Model-TopP", value);
         }
 
         public float FrequencyPenalty {
             get => GetProperty<float?>("Model-FrequencyPenalty") ?? 0f;
-            set {
-                SetProperty("Model-FrequencyPenalty", value);
-                OnPropertyChanged(nameof(FrequencyPenalty));
-            }
+            set => SetPropertyWithChangeCheck("Model-FrequencyPenalty", value);
         }
 
         public float PresencePenalty {
             get => GetProperty<float?>("Model-PresencePenalty") ?? 0f;
-            set {
-                SetProperty("Model-PresencePenalty", value);
-                OnPropertyChanged(nameof(PresencePenalty));
-            }
+            set => SetPropertyWithChangeCheck("Model-PresencePenalty", value);
         }
 
         public SettingsProvider(string filename = "appdata.json") {
@@ -104,7 +110,7 @@ namespace ChatClient.Providers {
         }
 
         private void Save() {
-            string content = JsonSerializer.Serialize(_settings);
+            string content = JsonSerializer.Serialize(_settings, new JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(ConfigPath, content);
         }
 
@@ -113,11 +119,10 @@ namespace ChatClient.Providers {
             _settings = JsonSerializer.Deserialize<Dictionary<string, JsonValue>>(content);
         }
 
-        private T GetProperty<T>([NotNull] string key) {
-            // Probably should refresh, but it may take some time, especially on slow drives
+        private T GetProperty<T>([NotNull] string key, T def = default) {
             _settings.TryGetValue(key, out JsonValue value);
             if (value == null || !value.TryGetValue(out T output)) {
-                return default;
+                return def;
             }
 
             return output;
@@ -126,6 +131,13 @@ namespace ChatClient.Providers {
         private void SetProperty(string key, object value) {
             _settings[key] = JsonValue.Create(value);
             Save();
+        }
+
+        private void SetPropertyWithChangeCheck<T>(string key, T value) {
+            if (!EqualityComparer<T>.Default.Equals(GetProperty<T>(key), value)) {
+                SetProperty(key, value);
+                OnPropertyChanged(key);
+            }
         }
     }
 }

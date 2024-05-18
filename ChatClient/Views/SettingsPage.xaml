@@ -13,6 +13,7 @@
     xmlns:behaviors="using:CommunityToolkit.WinUI.Behaviors"
     xmlns:controls1="using:ChatClient.Controls"
     xmlns:numberFormatting="using:Windows.Globalization.NumberFormatting"
+    xmlns:generation="using:ChatClient.Generation"
     mc:Ignorable="d">
 
     <Page.Resources>
@@ -26,7 +27,8 @@
             <StackPanel Spacing="4">
                 <controls:SettingsExpander Header="Tokens"
                                            Description="Press the button next to the input to verify and save tokens. Cross - unverified, Tick - verified"
-                                           HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}">
+                                           HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}"
+                                           IsExpanded="True">
                     <controls:SettingsExpander.Items>
                         <controls1:TokenInput x:Name="OpenAiTokenInput"
                                               Header="OpenAI"
@@ -36,8 +38,44 @@
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
 
+                <controls:SettingsExpander Header="Generation Settings"
+                                           HeaderIcon="{ui:FontIcon Glyph=&#xEBDB;}"
+                                           IsExpanded="True">
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard Header="Streaming">
+                            <ToggleSwitch IsOn="{x:Bind _settingsProvider.Streaming, Mode=TwoWay}"
+                                          OnContent="{x:Null}"
+                                          OffContent="{x:Null}"></ToggleSwitch>
+                        </controls:SettingsCard>
+                        
+                        <controls:SettingsCard Header="Provider">
+                            <ComboBox ItemsSource="{x:Bind generation:GenerationProvider.Providers}"
+                                      SelectedItem="{x:Bind _settingsProvider.Provider, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="generation:GenerationProvider">
+                                        <TextBlock Text="{x:Bind Name}"></TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </controls:SettingsCard>
+
+                        <controls:SettingsCard Header="Model">
+                            <ComboBox ItemsSource="{x:Bind _settingsProvider.Provider.Models}"
+                                      SelectedItem="{x:Bind _settingsProvider.Model, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate x:DataType="generation:Model">
+                                        <TextBlock Text="{x:Bind Name}"></TextBlock>
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </controls:SettingsCard>
+
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+
                 <controls:SettingsExpander Header="Model Parameters"
-                                           HeaderIcon="{ui:FontIcon Glyph=&#xF22C;}">
+                                           HeaderIcon="{ui:FontIcon Glyph=&#xF22C;}"
+                                           IsExpanded="True">
                     <Button Content="Reset"
                             Click="ResetButton_OnClick" />
                     <controls:SettingsExpander.Items>

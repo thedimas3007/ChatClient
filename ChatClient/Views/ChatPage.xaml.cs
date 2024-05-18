@@ -105,27 +105,38 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
     }
 
     public async Task GenerateResult() {
-        var newMessage = new ChatMessage("assistant", "");
-        AddMessageElement(newMessage);
-
-        GenerationProvider provider = new OpenAIProvider();
-        var call = provider.GenerateResponseAsStreamAsync(await _messageRepository.GetMessages(SelectedChat.Id), new GenerationSettings() {
-            Model = OpenAIProvider.Gpt35Turbo,
+        var messages = await _messageRepository.GetMessages(SelectedChat.Id);
+        var settings = new GenerationSettings() {
+            Model = _settingsProvider.Model,
             Temperature = _settingsProvider.Temperature,
             TopP = _settingsProvider.TopP,
             FrequencyPenalty = _settingsProvider.FrequencyPenalty,
             PresencePenalty = _settingsProvider.PresencePenalty,
             Token = _settingsProvider.OpenAiToken,
-        });
+        };
+        GenerationProvider provider = new OpenAIProvider();
 
-        string response = "";
-        await foreach (var result in call) {
-            UpdateLastMessageElement(result.Content);
-            response += result.Content;
+        if (_settingsProvider.Streaming) {
+            var message = new ChatMessage("assistant", "");
+            AddMessageElement(message);
+
+            var call = provider.GenerateResponseAsStreamAsync(messages, settings);
+
+            string response = "";
+            await foreach (var result in call) {
+                UpdateLastMessageElement(result.Content);
+                response += result.Content;
+            }
+
+            message.Content = response;
+            await _messageRepository.CreateMessage(SelectedChat.Id, message);
+        } else {
+            var result = await provider.GenerateResponseAsync(messages, settings);
+            var message = new ChatMessage(result.Role, result.Content, result.Name, result.ToolCalls,
+                result.ToolCallId);
+            AddMessageElement(message);
+            await _messageRepository.CreateMessage(SelectedChat.Id, message);
         }
-
-        newMessage.Content = response;
-        await _messageRepository.CreateMessage(SelectedChat.Id, newMessage);
     }
 
     private void AddMessageElement(ChatMessage message) {
