@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
-using ABI.Windows.System.Threading;
 
 namespace ChatClient.Providers {
     internal class SettingsProvider : INotifyPropertyChanged { // Probably create also separate class to store settings, IDK

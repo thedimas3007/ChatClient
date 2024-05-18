@@ -50,9 +50,6 @@
     <ProjectCapability Include="Msix" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Новая папка\" />
-  </ItemGroup>
-  <ItemGroup>
     <Page Update="Controls\TokenInput.xaml">
       <Generator>MSBuild:Compile</Generator>
     </Page>

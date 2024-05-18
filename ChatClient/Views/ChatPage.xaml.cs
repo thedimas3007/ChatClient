@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI;
+using ChatClient.Generation;
 using ChatClient.Providers;
 using ChatClient.Repositories;
 using ChatClient.Types;
@@ -107,23 +108,20 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         var newMessage = new ChatMessage("assistant", "");
         AddMessageElement(newMessage);
 
-        var response = "";
-        var call = _openaiApi.ChatCompletion.CreateCompletionAsStream(new ChatCompletionCreateRequest {
-            Messages = (await _messageRepository.GetMessages(SelectedChat.Id)).ConvertAll(m => m.AsChatMessage()),
-            Model = Models.Gpt_3_5_Turbo,
+        GenerationProvider provider = new OpenAIProvider();
+        var call = provider.GenerateResponseAsStreamAsync(await _messageRepository.GetMessages(SelectedChat.Id), new GenerationSettings() {
+            Model = OpenAIProvider.Gpt35Turbo,
             Temperature = _settingsProvider.Temperature,
             TopP = _settingsProvider.TopP,
             FrequencyPenalty = _settingsProvider.FrequencyPenalty,
-            PresencePenalty = _settingsProvider.PresencePenalty
+            PresencePenalty = _settingsProvider.PresencePenalty,
+            Token = _settingsProvider.OpenAiToken,
         });
 
+        string response = "";
         await foreach (var result in call) {
-            if (!result.Successful) {
-                Debug.Print($"{result.Error?.Type}: {result.Error?.Message}");
-            }
-            var res = result.Choices.FirstOrDefault()?.Message.Content;
-            UpdateLastMessageElement(res);
-            response += res;
+            UpdateLastMessageElement(result.Content);
+            response += result.Content;
         }
 
         newMessage.Content = response;
