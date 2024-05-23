@@ -136,7 +136,7 @@ internal class MessageRepository : INotifyPropertyChanged {
             );", _connection);
         createMessageTableCommand.ExecuteNonQuery();
 
-        Chats = new ObservableCollection<Chat>(GetChats().GetAwaiter().GetResult().OrderBy(c => c.LastAccessed));
+        Chats = new ObservableCollection<Chat>(GetChats().GetAwaiter().GetResult().OrderByDescending(c => c.LastAccessed));
     }
 
     public ObservableCollection<Chat> Chats { set; get; }
