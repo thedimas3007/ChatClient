@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.System;
 using Windows.UI;
@@ -166,11 +167,29 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         var border = ListView.Items[^1] as Border;
         var oldElement = border.Child as TextBlock;
 
+        var regex = new Regex(@"(?s)\$\$(.+?)\$\$|\$(.+?)\$|\\\[(.+?)\\\]|\\\(.*?\\\)");
+        string replacement = "![{0}](https://latex.codecogs.com/png.image?{1})";
+
+        var result = regex.Replace(oldElement.Text, match => {
+            string expression = "";
+            for (int i = 1; i <= 4; i++) {
+                expression = match.Groups[i].Value;
+                if (!string.IsNullOrEmpty(expression))
+                    break;
+            }
+
+            if (!string.IsNullOrEmpty(expression))
+                return string.Format(replacement, expression, Uri.EscapeDataString((ActualTheme == ElementTheme.Dark ? @"\fg_white" : @"\fg_black") + " " + expression));
+            else
+                return match.Value;
+        });
+
         var textBlock = new MarkdownTextBlock {
             UseSyntaxHighlighting = true,
             Background = new SolidColorBrush(Color.FromArgb(0, 0, 0, 0)),
-            Text = oldElement.Text
+            Text = result
         };
+
         textBlock.LinkClicked += async (sender, e) => { await Launcher.LaunchUriAsync(new Uri(e.Link)); };
         textBlock.ImageClicked += async (sender, e) => {
             var dialog = new ContentDialog {
