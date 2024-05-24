@@ -35,6 +35,18 @@
                                               Token="{x:Bind _settingsProvider.OpenAiToken, Mode=OneWay}"
                                               TokenVerified="{x:Bind _settingsProvider.OpenAiTokenVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="OpenAiTokenInput_OnTokenVerificationRequested"/>
+                        
+                        <controls1:TokenInput x:Name="GoogleSearchId"
+                                              Header="Search ID"
+                                              Token="{x:Bind _settingsProvider.GoogleSearchId, Mode=OneWay}"
+                                              TokenVerified="{x:Bind _settingsProvider.GoogleSearchIdVerified, Mode=TwoWay}"
+                                              TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
+
+                        <controls1:TokenInput x:Name="GoogleSearchToken"
+                                              Header="Search Token"
+                                              Token="{x:Bind _settingsProvider.GoogleSearchToken, Mode=OneWay}"
+                                              TokenVerified="{x:Bind _settingsProvider.GoogleSearchTokenVerified, Mode=TwoWay}"
+                                              TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
 
@@ -43,17 +55,27 @@
                                            IsExpanded="True">
                     <controls:SettingsExpander.Items>
                         <controls:SettingsCard Header="Streaming">
-                            <ToggleSwitch IsOn="{x:Bind _settingsProvider.Streaming, Mode=TwoWay}"
+                            <ToggleSwitch x:Name="StreamingToggle"
+                                          IsOn="{x:Bind _settingsProvider.Streaming, Mode=TwoWay}"
                                           OnContent="{x:Null}"
-                                          OffContent="{x:Null}"></ToggleSwitch>
+                                          OffContent="{x:Null}"
+                                          Toggled="StreamingToggle_OnToggled"/>
                         </controls:SettingsCard>
-                        
+
+                        <controls:SettingsCard Header="Functions">
+                            <ToggleSwitch x:Name="FunctionsToggle"
+                                          IsOn="{x:Bind _settingsProvider.Functions, Mode=TwoWay}"
+                                          OnContent="{x:Null}"
+                                          OffContent="{x:Null}"
+                                          Toggled="FunctionsToggle_OnToggled"/>
+                        </controls:SettingsCard>
+
                         <controls:SettingsCard Header="Provider">
                             <ComboBox ItemsSource="{x:Bind generation:GenerationProvider.Providers}"
                                       SelectedItem="{x:Bind _settingsProvider.Provider, Mode=TwoWay}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate x:DataType="generation:GenerationProvider">
-                                        <TextBlock Text="{x:Bind Name}"></TextBlock>
+                                        <TextBlock Text="{x:Bind Name}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
@@ -64,7 +86,7 @@
                                       SelectedItem="{x:Bind _settingsProvider.Model, Mode=TwoWay}">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate x:DataType="generation:Model">
-                                        <TextBlock Text="{x:Bind Name}"></TextBlock>
+                                        <TextBlock Text="{x:Bind Name}"/>
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>

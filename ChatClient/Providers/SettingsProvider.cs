@@ -24,7 +24,12 @@ namespace ChatClient.Providers {
 
         public bool Streaming {
             get => GetProperty<bool>("Streaming", true);
-            set => SetPropertyWithChangeCheck("Streaming", value);
+            set => SetPropertyWithCheck("Streaming", value);
+        }
+
+        public bool Functions {
+            get => GetProperty<bool>("Functions");
+            set => SetPropertyWithCheck("Functions", value);
         }
 
         public GenerationProvider Provider {
@@ -37,7 +42,7 @@ namespace ChatClient.Providers {
                 var provider = GenerationProvider.Providers.FirstOrDefault(p => p.Name == name);
                 return provider ?? GenerationProvider.Providers.FirstOrDefault();
             }
-            set => SetPropertyWithChangeCheck("Provider", value.Name);
+            set => SetPropertyWithCheck("Provider", value.Name);
         }
 
         public Model Model {
@@ -50,37 +55,57 @@ namespace ChatClient.Providers {
                 var model = Provider.Models.FirstOrDefault(m => m.Id == id);
                 return model ?? Provider.Models.FirstOrDefault();
             }
-            set => SetPropertyWithChangeCheck("Model", value.Id);
+            set => SetPropertyWithCheck("Model", value.Id);
         }
 
         public string OpenAiToken {
             get => GetProperty<string>("OpenAI-Token");
-            set => SetPropertyWithChangeCheck("OpenAI-Token", value);
+            set => SetPropertyWithCheck("OpenAI-Token", value);
         }
 
         public bool OpenAiTokenVerified {
             get => GetProperty<bool>("OpenAI-Token-Verified");
-            set => SetPropertyWithChangeCheck("OpenAI-Token-Verified", value);
+            set => SetPropertyWithCheck("OpenAI-Token-Verified", value);
+        }
+
+        public string GoogleSearchId {
+            get => GetProperty<string>("Google-Search-ID");
+            set => SetPropertyWithCheck("Google-Search-ID", value);
+        }
+
+        public bool GoogleSearchIdVerified {
+            get => GetProperty<bool>("Google-Search-ID-Verified");
+            set => SetPropertyWithCheck("Google-Search-ID-Verified", value);
+        }
+
+        public string GoogleSearchToken {
+            get => GetProperty<string>("Google-Search-Token");
+            set => SetPropertyWithCheck("Google-Search-Token", value);
+        }
+
+        public bool GoogleSearchTokenVerified {
+            get => GetProperty<bool>("Google-Search-Token-Verified");
+            set => SetPropertyWithCheck("Google-Search-Token-Verified", value);
         }
 
         public float Temperature {
             get => GetProperty<float?>("Model-Temperature") ?? 1f;
-            set => SetPropertyWithChangeCheck("Model-Temperature", value);
+            set => SetPropertyWithCheck("Model-Temperature", value);
         }
 
         public float TopP {
             get => GetProperty<float?>("Model-TopP") ?? 1f;
-            set => SetPropertyWithChangeCheck("Model-TopP", value);
+            set => SetPropertyWithCheck("Model-TopP", value);
         }
 
         public float FrequencyPenalty {
             get => GetProperty<float?>("Model-FrequencyPenalty") ?? 0f;
-            set => SetPropertyWithChangeCheck("Model-FrequencyPenalty", value);
+            set => SetPropertyWithCheck("Model-FrequencyPenalty", value);
         }
 
         public float PresencePenalty {
             get => GetProperty<float?>("Model-PresencePenalty") ?? 0f;
-            set => SetPropertyWithChangeCheck("Model-PresencePenalty", value);
+            set => SetPropertyWithCheck("Model-PresencePenalty", value);
         }
 
         public SettingsProvider(string filename = "appdata.json") {
@@ -133,7 +158,7 @@ namespace ChatClient.Providers {
             Save();
         }
 
-        private void SetPropertyWithChangeCheck<T>(string key, T value) {
+        private void SetPropertyWithCheck<T>(string key, T value) {
             if (!EqualityComparer<T>.Default.Equals(GetProperty<T>(key), value)) {
                 SetProperty(key, value);
                 OnPropertyChanged(key);

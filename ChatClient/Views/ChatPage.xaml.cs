@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Windows.System;
@@ -122,7 +123,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             var message = new ChatMessage("assistant", "");
             AddMessageElement(message);
 
-            var call = provider.GenerateResponseAsStreamAsync(messages, settings);
+            var call = provider.GenerateResponseAsStreamAsync(messages, settings, _settingsProvider.Functions);
 
             string response = "";
             await foreach (var result in call) {
@@ -133,26 +134,74 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             message.Content = response;
             await _messageRepository.CreateMessage(SelectedChat.Id, message);
         } else {
-            var result = await provider.GenerateResponseAsync(messages, settings);
+            var result = await provider.GenerateResponseAsync(messages, settings, _settingsProvider.Functions);
             var message = new ChatMessage(result.Role, result.Content, result.Name, result.ToolCalls,
                 result.ToolCallId);
             AddMessageElement(message);
             await _messageRepository.CreateMessage(SelectedChat.Id, message);
+            if (result.ToolCalls != null) {
+                foreach (var toolCall in result.ToolCalls) {
+                    var name = toolCall.FunctionCall.Name;
+                    var args = toolCall.FunctionCall.ParseArguments();
+
+                    var sb = new StringBuilder();
+                    foreach (var kv in args) {
+                        sb.AppendLine($"{kv.Key}: {kv.Value}");
+                    }
+
+                    var paramText = sb.ToString();
+
+                    var textBlock = new TextBlock() {
+                        Text = $"Using {toolCall.FunctionCall.Name}",
+                        Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+                    };
+                    var toolTip = new ToolTip { Content = paramText };
+                    ToolTipService.SetToolTip(textBlock, toolTip);
+                    ListView.Items.Add(textBlock);
+                    
+                    var funcResult = "Unavailable";
+                    switch (toolCall.FunctionCall.Name.ToLower()) {
+                        case "google":
+                            funcResult = await provider.GoogleAsync(args["query"].ToString(),
+                                _settingsProvider.GoogleSearchId, _settingsProvider.GoogleSearchToken);
+                            break;
+                    }
+
+                    await _messageRepository.CreateMessage(SelectedChat.Id, ChatMessage.FromTool(funcResult, toolCall.Id));
+                    await GenerateResult();
+                }
+            }
         }
     }
 
     private void AddMessageElement(ChatMessage message, bool render = false) {
-        var textBlock = new TextBlock() {
-            Text = message.Content,
-            TextWrapping = TextWrapping.Wrap
-        };
+        if (render && message.ToolCalls != null) {
+            foreach (var toolCall in message.ToolCalls) {
+                var param = string.Join('\n',
+                    toolCall.FunctionCall.ParseArguments().Select((kv, _) => $"{kv.Key}: {kv.Value}"));
 
-        var border = new Border {
-            Style = (Style)Application.Current.Resources[
-                message.Role == "user" ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
-            Child = textBlock
-        };
-        ListView.Items.Add(border);
+                var textBlock2 = new TextBlock() {
+                    Text = $"Using {toolCall.FunctionCall.Name}",
+                    Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"]
+                };
+                var toolTip = new ToolTip { Content = param };
+                ToolTipService.SetToolTip(textBlock2, toolTip);
+                ListView.Items.Add(textBlock2);
+            }
+        } else if (message.Content != null && message.ToolCallId == null) {
+            var textBlock = new TextBlock() {
+                Text = message.Content,
+                TextWrapping = TextWrapping.Wrap
+            };
+
+            var border = new Border {
+                Style = (Style)Application.Current.Resources[
+                    message.Role == "user" ? "UserChatBubbleStyle" : "BotChatBubbleStyle"],
+                Child = textBlock
+            };
+            ListView.Items.Add(border);
+        }
+
         if (render) { RenderResult(); }
     }
 
@@ -165,6 +214,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
 
     private void RenderResult() {
         var border = ListView.Items[^1] as Border;
+        if (border == null) return;
         var oldElement = border.Child as TextBlock;
 
         var regex = new Regex(@"(?s)\$\$(.+?)\$\$|\$(.+?)\$|\\\[(.+?)\\\]|\\\(.*?\\\)");
@@ -240,7 +290,6 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
 
         if (!ctrlPressed && !shiftPressed) {
             SendButton_OnClick(sender, e);
-            InputKeyboardSource.GetKeyStateForCurrentThread(VirtualKey.Control).HasFlag(CoreVirtualKeyStates.Down);
             e.Handled = true;
         }
     }

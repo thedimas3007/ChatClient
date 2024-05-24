@@ -2,8 +2,10 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
 using ChatClient.Controls;
+using ChatClient.Generation;
 using ChatClient.Providers;
 using ChatClient.Repositories;
 using ChatClient.Types;
@@ -39,7 +41,6 @@ public sealed partial class SettingsPage : Page {
     protected override void OnNavigatedTo(NavigationEventArgs e) {
         if (e.Parameter != null) {
             _settingsProvider = (SettingsProvider)e.Parameter;
-            ;
         }
 
         base.OnNavigatedTo(e);
@@ -63,9 +64,9 @@ public sealed partial class SettingsPage : Page {
                 return;
             }
 
-            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             _settingsProvider.OpenAiToken = tokenInput.Token;
             _settingsProvider.OpenAiTokenVerified = true;
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
@@ -77,11 +78,48 @@ public sealed partial class SettingsPage : Page {
 
         tokenInput.IsEnabled = true;
     }
+    
+    private async void GoogleSearchTokens_OnTokenVerificationRequested(object sender, string e) {
+        TokenInput tokenInput = (TokenInput)sender;
+
+        tokenInput.IsEnabled = false;
+        GoogleSearchId.IsEnabled = false;
+        GoogleSearchToken.IsEnabled = false;
+        try {
+            await GenerationProvider.Providers.FirstOrDefault()
+                .GoogleAsync("Test", GoogleSearchId.Token, GoogleSearchToken.Token);
+            _settingsProvider.GoogleSearchId = GoogleSearchId.Token;
+            _settingsProvider.GoogleSearchIdVerified = true;
+            _settingsProvider.GoogleSearchToken = GoogleSearchToken.Token;
+            _settingsProvider.GoogleSearchTokenVerified = true;
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
+            NotificationQueue.Show("Token verified", 2000);
+        } catch (Exception ex) {
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
+            NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
+            _settingsProvider.OpenAiTokenVerified = false;
+            Debug.Print("Unable to verify token");
+            Debug.Print(ex.StackTrace);
+            _settingsProvider.GoogleSearchIdVerified = false;
+            _settingsProvider.GoogleSearchTokenVerified = false;
+        }
+        tokenInput.IsEnabled = true;
+        GoogleSearchId.IsEnabled = true;
+        GoogleSearchToken.IsEnabled = true;
+    }
 
     private void ResetButton_OnClick(object sender, RoutedEventArgs e) {
         _settingsProvider.Temperature = 1f;
         _settingsProvider.TopP = 1f;
         _settingsProvider.FrequencyPenalty = 0f;
         _settingsProvider.PresencePenalty = 0f;
+    }
+
+    private void StreamingToggle_OnToggled(object sender, RoutedEventArgs e) {
+        FunctionsToggle.IsOn = false;
+    }
+
+    private void FunctionsToggle_OnToggled(object sender, RoutedEventArgs e) {
+        StreamingToggle.IsOn = false;
     }
 }

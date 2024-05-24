@@ -1,23 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using ChatClient.Repositories;
+using Google.Apis.CustomSearchAPI.v1;
+using Google.Apis.Services;
 
 namespace ChatClient.Generation {
     internal abstract class GenerationProvider {
         public static readonly IReadOnlyCollection<GenerationProvider> Providers = new List<GenerationProvider>() {
             new OpenAIProvider(),
         };
-
-        public static List<string> ProviderNames {
-            get {
-                return Providers
-                    .Select(p => p.Name)
-                    .ToList();
-            }
-        }
 
         public static readonly IReadOnlyCollection<Model> AllModels = Providers
             .SelectMany(p => p.Models)
@@ -43,7 +38,16 @@ namespace ChatClient.Generation {
             return provider.Models;
         }
 
-        public abstract Task<MessageResponse> GenerateResponseAsync(List<Message> messages, GenerationSettings settings);
-        public abstract IAsyncEnumerable<MessageResponse> GenerateResponseAsStreamAsync(List<Message> messages, GenerationSettings settings);
+        public async Task<string> GoogleAsync(string query, string searchId, string searchToken) {
+            var searchAPI = new CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = searchToken });
+            var request = searchAPI.Cse.List();
+            request.Cx = searchId;
+            request.Q = query;
+            var search = await request.ExecuteAsync();
+            return string.Join('\n', search.Items.Select(r => $"{r.Title}: {r.Link}"));
+        }
+
+        public abstract Task<MessageResponse> GenerateResponseAsync(List<Message> messages, GenerationSettings settings, bool withTools = false);
+        public abstract IAsyncEnumerable<MessageResponse> GenerateResponseAsStreamAsync(List<Message> messages, GenerationSettings settings, bool withTools = false);
     }
 }
