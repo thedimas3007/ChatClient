@@ -45,8 +45,9 @@ namespace ChatClient.Generation {
             }
 
             var api = GetApi(settings.Token);
+            var converted = messages.ConvertAll(m => m.AsChatMessage());
             var response = await api.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest() {
-                Messages = messages.ConvertAll(m => m.AsChatMessage()),
+                Messages = converted,
                 Model = settings.Model.Id,
                 Temperature = settings.Temperature,
                 TopP = settings.TopP,

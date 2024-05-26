@@ -13,7 +13,12 @@ namespace ChatClient.Generation {
         public float PresencePenalty { get; set; }
         public Model Model { get; set; }
 
-        public GenerationSettings() { }
+        public GenerationSettings() {
+            Temperature = 1;
+            TopP = 1;
+            FrequencyPenalty = 0;
+            PresencePenalty = 0;
+        }
 
         public GenerationSettings(string token, float temperature, float topP, float frequencyPenalty,
             float presencePenalty, Model model) {

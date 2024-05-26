@@ -39,13 +39,13 @@
                         <controls1:TokenInput x:Name="GoogleSearchId"
                                               Header="Search ID"
                                               Token="{x:Bind _settingsProvider.GoogleSearchId, Mode=OneWay}"
-                                              TokenVerified="{x:Bind _settingsProvider.GoogleSearchIdVerified, Mode=TwoWay}"
+                                              TokenVerified="{x:Bind _settingsProvider.GoogleSearchVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
 
                         <controls1:TokenInput x:Name="GoogleSearchToken"
                                               Header="Search Token"
                                               Token="{x:Bind _settingsProvider.GoogleSearchToken, Mode=OneWay}"
-                                              TokenVerified="{x:Bind _settingsProvider.GoogleSearchTokenVerified, Mode=TwoWay}"
+                                              TokenVerified="{x:Bind _settingsProvider.GoogleSearchVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>

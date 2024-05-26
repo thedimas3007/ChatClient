@@ -141,35 +141,46 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             await _messageRepository.CreateMessage(SelectedChat.Id, message);
             if (result.ToolCalls != null) {
                 foreach (var toolCall in result.ToolCalls) {
-                    var name = toolCall.FunctionCall.Name;
-                    var args = toolCall.FunctionCall.ParseArguments();
+                    var funcResult = "";
+                    try {
+                        var name = toolCall.FunctionCall.Name;
+                        var args = toolCall.FunctionCall.ParseArguments();
 
-                    var sb = new StringBuilder();
-                    foreach (var kv in args) {
-                        sb.AppendLine($"{kv.Key}: {kv.Value}");
-                    }
+                        var sb = new StringBuilder();
+                        foreach (var kv in args) {
+                            sb.AppendLine($"{kv.Key}: {kv.Value}");
+                        }
 
-                    var paramText = sb.ToString();
+                        var paramText = sb.ToString();
 
-                    var textBlock = new TextBlock() {
-                        Text = $"Using {toolCall.FunctionCall.Name}",
-                        Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
-                    };
-                    var toolTip = new ToolTip { Content = paramText };
-                    ToolTipService.SetToolTip(textBlock, toolTip);
-                    ListView.Items.Add(textBlock);
-                    
-                    var funcResult = "Unavailable";
-                    switch (toolCall.FunctionCall.Name.ToLower()) {
-                        case "google":
-                            funcResult = await provider.GoogleAsync(args["query"].ToString(),
-                                _settingsProvider.GoogleSearchId, _settingsProvider.GoogleSearchToken);
-                            break;
+                        var textBlock = new TextBlock() {
+                            Text = $"Using {toolCall.FunctionCall.Name}",
+                            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
+                        };
+                        var toolTip = new ToolTip { Content = paramText };
+                        ToolTipService.SetToolTip(textBlock, toolTip);
+                        ListView.Items.Add(textBlock);
+                        
+                        funcResult = "Unavailable";
+                        switch (toolCall.FunctionCall.Name.ToLower()) {
+                            case "google":
+                                funcResult = await provider.GoogleAsync(args["query"].ToString(),
+                                    _settingsProvider.GoogleSearchId, _settingsProvider.GoogleSearchToken);
+                                break;
+                            case "ask_web":
+                                funcResult = await provider.AskWebpage(args["url"].ToString(),
+                                    args["prompt"].ToString(), _settingsProvider.OpenAiToken);
+                                break;
+                        }
+                    } catch (Exception ex) {
+                        funcResult = $"Unable to use {toolCall.FunctionCall.Name}: {ex.GetType().Name} - {ex.Message}";
+                        NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, $"Unable to use {toolCall.FunctionCall.Name}");
+                        Debug.Print(ex.StackTrace);
                     }
 
                     await _messageRepository.CreateMessage(SelectedChat.Id, ChatMessage.FromTool(funcResult, toolCall.Id));
-                    await GenerateResult();
                 }
+                await GenerateResult();
             }
         }
     }

@@ -73,19 +73,14 @@ namespace ChatClient.Providers {
             set => SetPropertyWithCheck("Google-Search-ID", value);
         }
 
-        public bool GoogleSearchIdVerified {
-            get => GetProperty<bool>("Google-Search-ID-Verified");
-            set => SetPropertyWithCheck("Google-Search-ID-Verified", value);
-        }
-
         public string GoogleSearchToken {
             get => GetProperty<string>("Google-Search-Token");
             set => SetPropertyWithCheck("Google-Search-Token", value);
         }
 
-        public bool GoogleSearchTokenVerified {
-            get => GetProperty<bool>("Google-Search-Token-Verified");
-            set => SetPropertyWithCheck("Google-Search-Token-Verified", value);
+        public bool GoogleSearchVerified {
+            get => GetProperty<bool>("Google-Search-Verified");
+            set => SetPropertyWithCheck("Google-Search-Verified", value);
         }
 
         public float Temperature {

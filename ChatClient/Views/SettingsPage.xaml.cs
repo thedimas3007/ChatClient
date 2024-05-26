@@ -55,7 +55,7 @@ public sealed partial class SettingsPage : Page {
         var openAiService = new OpenAIService(new OpenAiOptions {
             ApiKey = string.IsNullOrEmpty(tokenInput.Token) ? "non-set" : tokenInput.Token,
         });
-        tokenInput.IsEnabled = false;
+
         try {
             var result = await openAiService.Models.ListModel();
             tokenInput.IsEnabled = true;
@@ -75,23 +75,16 @@ public sealed partial class SettingsPage : Page {
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
         }
-
-        tokenInput.IsEnabled = true;
     }
     
     private async void GoogleSearchTokens_OnTokenVerificationRequested(object sender, string e) {
         TokenInput tokenInput = (TokenInput)sender;
-
-        tokenInput.IsEnabled = false;
-        GoogleSearchId.IsEnabled = false;
-        GoogleSearchToken.IsEnabled = false;
         try {
             await GenerationProvider.Providers.FirstOrDefault()
                 .GoogleAsync("Test", GoogleSearchId.Token, GoogleSearchToken.Token);
             _settingsProvider.GoogleSearchId = GoogleSearchId.Token;
-            _settingsProvider.GoogleSearchIdVerified = true;
             _settingsProvider.GoogleSearchToken = GoogleSearchToken.Token;
-            _settingsProvider.GoogleSearchTokenVerified = true;
+            _settingsProvider.GoogleSearchVerified = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
         } catch (Exception ex) {
@@ -100,12 +93,8 @@ public sealed partial class SettingsPage : Page {
             _settingsProvider.OpenAiTokenVerified = false;
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
-            _settingsProvider.GoogleSearchIdVerified = false;
-            _settingsProvider.GoogleSearchTokenVerified = false;
+            _settingsProvider.GoogleSearchVerified = false;
         }
-        tokenInput.IsEnabled = true;
-        GoogleSearchId.IsEnabled = true;
-        GoogleSearchToken.IsEnabled = true;
     }
 
     private void ResetButton_OnClick(object sender, RoutedEventArgs e) {
