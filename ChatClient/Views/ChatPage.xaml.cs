@@ -60,45 +60,15 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         }
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
-
-    private async void ChatPage_PropertyChanged(object sender, PropertyChangedEventArgs e) {
-        switch (e.PropertyName) {
-            case nameof(SelectedChat):
-                ListView.Items.Clear();
-                foreach (var message in await _messageRepository.GetMessages(SelectedChat.Id))
-                    AddMessageElement(message.AsChatMessage(), true);
-                break;
-        }
-    }
-
-    private void OnPropertyChanged(string propertyName) {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
-
-    protected override void OnNavigatedTo(NavigationEventArgs e) {
-        if (e.Parameter != null) {
-            var chatParams = (ChatParams)e.Parameter;
-            _messageRepository = chatParams.Repository;
-            _settingsProvider = chatParams.Settings;
-            _openaiApi = new OpenAIService(new OpenAiOptions {
-                ApiKey = string.IsNullOrEmpty(_settingsProvider.OpenAiToken) ? "non-set" : _settingsProvider.OpenAiToken,
-            });
-            SelectedChat = chatParams.Chat;
-        }
-
-        base.OnNavigatedTo(e);
-    }
-
-    protected override void OnNavigatedFrom(NavigationEventArgs e) {
-        base.OnNavigatedFrom(e);
-        PropertyChanged -= ChatPage_PropertyChanged;
+    private string ParseDomain(string url) {
+        return Regex.Match(url, @"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?").Groups[4].Value;
     }
 
     public async Task<string> GenerateTitle(string startMessage) { // TODO: create Utils class with all functions
         var response = await _openaiApi.ChatCompletion.CreateCompletion(new ChatCompletionCreateRequest {
             Messages = new List<ChatMessage> {
-                ChatMessage.FromSystem("Generate short, catchy title (2-4 words) for initiating a chat conversation. These titles should be engaging and inviting."),
+                ChatMessage.FromSystem(
+                    "Generate short, catchy title (2-4 words) for initiating a chat conversation. These titles should be engaging and inviting."),
                 ChatMessage.FromUser(startMessage)
             },
             Model = Models.Gpt_3_5_Turbo,
@@ -151,16 +121,8 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                             sb.AppendLine($"{kv.Key}: {kv.Value}");
                         }
 
-                        var paramText = sb.ToString();
+                        AddToolCall(toolCall);
 
-                        var textBlock = new TextBlock() {
-                            Text = $"Using {toolCall.FunctionCall.Name}",
-                            Foreground = (Brush)Application.Current.Resources["TextFillColorSecondaryBrush"]
-                        };
-                        var toolTip = new ToolTip { Content = paramText };
-                        ToolTipService.SetToolTip(textBlock, toolTip);
-                        ListView.Items.Add(textBlock);
-                        
                         funcResult = "Unavailable";
                         switch (toolCall.FunctionCall.Name.ToLower()) {
                             case "google":
@@ -174,30 +136,69 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                         }
                     } catch (Exception ex) {
                         funcResult = $"Unable to use {toolCall.FunctionCall.Name}: {ex.GetType().Name} - {ex.Message}";
-                        NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, $"Unable to use {toolCall.FunctionCall.Name}");
+                        NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000,
+                            $"Unable to use {toolCall.FunctionCall.Name}");
                         Debug.Print(ex.StackTrace);
                     }
 
-                    await _messageRepository.CreateMessage(SelectedChat.Id, ChatMessage.FromTool(funcResult, toolCall.Id));
+                    await _messageRepository.CreateMessage(SelectedChat.Id,
+                        ChatMessage.FromTool(funcResult, toolCall.Id));
                 }
+
                 await GenerateResult();
             }
         }
     }
 
+    #region Rendering
+
+    private void AddToolCall(ToolCall toolCall) {
+        var name = toolCall.FunctionCall.Name;
+        var args = toolCall.FunctionCall.ParseArguments();
+
+        var text = $"Using {name}";
+        var iconGlyph = "\uE90F";
+
+        var param = string.Join('\n',
+            args.Select((kv, _) => $"{kv.Key}: {kv.Value}"));
+
+        switch (name) {
+            case "google":
+                text = $"Googling '{args["query"]}'";
+                iconGlyph = "\uE721";
+                break;
+            case "ask_web":
+                text = $"Analyzing {ParseDomain(args["url"].ToString())}";
+                iconGlyph = "\uE774";
+                break;
+        }
+
+        var icon = new FontIcon {
+            Glyph = iconGlyph,
+            FontSize = 12,
+            Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"]
+        };
+
+        var textBlock = new TextBlock {
+            Text = text,
+            Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"]
+        };
+
+        var stackPanel = new StackPanel {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            Children = { icon, textBlock }
+        };
+
+        var toolTip = new ToolTip { Content = param };
+        ToolTipService.SetToolTip(stackPanel, toolTip);
+        ListView.Items.Add(stackPanel);
+    }
+
     private void AddMessageElement(ChatMessage message, bool render = false) {
         if (render && message.ToolCalls != null) {
             foreach (var toolCall in message.ToolCalls) {
-                var param = string.Join('\n',
-                    toolCall.FunctionCall.ParseArguments().Select((kv, _) => $"{kv.Key}: {kv.Value}"));
-
-                var textBlock2 = new TextBlock() {
-                    Text = $"Using {toolCall.FunctionCall.Name}",
-                    Foreground = (Brush)Application.Current.Resources["TextFillColorTertiaryBrush"]
-                };
-                var toolTip = new ToolTip { Content = param };
-                ToolTipService.SetToolTip(textBlock2, toolTip);
-                ListView.Items.Add(textBlock2);
+                AddToolCall(toolCall);
             }
         } else if (message.Content != null && message.ToolCallId == null) {
             var textBlock = new TextBlock() {
@@ -213,7 +214,9 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             ListView.Items.Add(border);
         }
 
-        if (render) { RenderResult(); }
+        if (render) {
+            RenderResult();
+        }
     }
 
     private void UpdateLastMessageElement(string token) {
@@ -242,7 +245,9 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             if (string.IsNullOrEmpty(expression))
                 return match.Value;
 
-            return string.Format(replacement, expression, Uri.EscapeDataString((ActualTheme == ElementTheme.Dark ? @"\fg_white" : @"\fg_black") + " " + expression));
+            return string.Format(replacement, expression,
+                Uri.EscapeDataString(
+                    (ActualTheme == ElementTheme.Dark ? @"\fg_white" : @"\fg_black") + " " + expression));
         });
 
         var textBlock = new MarkdownTextBlock {
@@ -264,6 +269,46 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         border.Child = textBlock;
     }
 
+    #endregion
+
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
+    private async void ChatPage_PropertyChanged(object sender, PropertyChangedEventArgs e) {
+        switch (e.PropertyName) {
+            case nameof(SelectedChat):
+                ListView.Items.Clear();
+                foreach (var message in await _messageRepository.GetMessages(SelectedChat.Id))
+                    AddMessageElement(message.AsChatMessage(), true);
+                break;
+        }
+    }
+
+    private void OnPropertyChanged(string propertyName) {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected override void OnNavigatedTo(NavigationEventArgs e) {
+        if (e.Parameter != null) {
+            var chatParams = (ChatParams)e.Parameter;
+            _messageRepository = chatParams.Repository;
+            _settingsProvider = chatParams.Settings;
+            _openaiApi = new OpenAIService(new OpenAiOptions {
+                ApiKey =
+                    string.IsNullOrEmpty(_settingsProvider.OpenAiToken) ? "non-set" : _settingsProvider.OpenAiToken,
+            });
+            SelectedChat = chatParams.Chat;
+        }
+
+        base.OnNavigatedTo(e);
+    }
+
+    protected override void OnNavigatedFrom(NavigationEventArgs e) {
+        base.OnNavigatedFrom(e);
+        PropertyChanged -= ChatPage_PropertyChanged;
+    }
+
     private async void SendButton_OnClick(object sender, RoutedEventArgs e) {
         if (!_settingsProvider.OpenAiTokenVerified || _settingsProvider.OpenAiToken == null) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
@@ -277,8 +322,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         var message = new ChatMessage("user", text);
         AddMessageElement(message);
 
-        if (!await _messageRepository.HasMessages(SelectedChat.Id))
-        {
+        if (!await _messageRepository.HasMessages(SelectedChat.Id)) {
             var title = await GenerateTitle(text);
             await _messageRepository.UpdateChat(SelectedChat.Id, "title", title);
             HeaderTextBlock.Text = title;
@@ -318,4 +362,6 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
     private async void DeleteButton_OnClick(object sender, RoutedEventArgs e) {
         await _messageRepository.DeleteChat(_selectedChat.Id);
     }
+
+    #endregion
 }
