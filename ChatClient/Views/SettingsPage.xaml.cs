@@ -80,8 +80,7 @@ public sealed partial class SettingsPage : Page {
     private async void GoogleSearchTokens_OnTokenVerificationRequested(object sender, string e) {
         TokenInput tokenInput = (TokenInput)sender;
         try {
-            await GenerationProvider.Providers.FirstOrDefault()
-                .GoogleAsync("Test", GoogleSearchId.Token, GoogleSearchToken.Token);
+            await Tools.GoogleAsync("Test", GoogleSearchId.Token, GoogleSearchToken.Token);
             _settingsProvider.GoogleSearchId = GoogleSearchId.Token;
             _settingsProvider.GoogleSearchToken = GoogleSearchToken.Token;
             _settingsProvider.GoogleSearchVerified = true;

@@ -18,18 +18,6 @@ namespace ChatClient.Generation {
         public static readonly Model Gpt4Turbo = new("OpenAI", "gpt-4-turbo", "GPT-4 Turbo");
         public static readonly Model Gpt4o = new("OpenAI", "gpt-4o", "GPT-4o");
 
-        private readonly ReadOnlyCollection<ToolDefinition> tools = new List<ToolDefinition>() { // TODO: make it universal for all providers
-            ToolDefinition.DefineFunction(new FunctionDefinitionBuilder("google", "Search a prompt online. Returns 10 results (url and title). Better send multiple prompts as separate messages at once. Don't use it for general knowledge and obvious, basic questions")
-                .AddParameter("query", PropertyDefinition.DefineString("The query to be searched"))
-                .Validate()
-                .Build()),
-            ToolDefinition.DefineFunction(new FunctionDefinitionBuilder("ask_web", "Send a web request to the specified url and ask another GPT about it. Use this to after searching to inspect the results")
-                .AddParameter("url", PropertyDefinition.DefineString("The url to send the request to"))
-                .AddParameter("prompt", PropertyDefinition.DefineString("The prompt to be asked"))
-                .Validate()
-                .Build())
-        }.AsReadOnly();
-
         public OpenAIProvider() : 
             base("OpenAI", new List<Model>() { Gpt35Turbo, Gpt4Turbo, Gpt4o }, true) { }
 
@@ -53,7 +41,7 @@ namespace ChatClient.Generation {
                 TopP = settings.TopP,
                 FrequencyPenalty = settings.FrequencyPenalty,
                 PresencePenalty = settings.PresencePenalty,
-                Tools = withTools ? tools : null
+                Tools = withTools ? Tools.tools : null
             });
             var message = response.Choices.First().Message;
             return new MessageResponse(message.Role, message.Content, message.Name, message.ToolCallId,
@@ -74,7 +62,7 @@ namespace ChatClient.Generation {
                 TopP = settings.TopP,
                 FrequencyPenalty = settings.FrequencyPenalty,
                 PresencePenalty = settings.PresencePenalty,
-                Tools = withTools ? tools : null
+                Tools = withTools ? Tools.tools : null
             });
             await foreach (var response in call) {
                 if (!response.Successful) {

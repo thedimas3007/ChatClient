@@ -126,11 +126,11 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                         funcResult = "Unavailable";
                         switch (toolCall.FunctionCall.Name.ToLower()) {
                             case "google":
-                                funcResult = await provider.GoogleAsync(args["query"].ToString(),
+                                funcResult = await Tools.GoogleAsync(args["query"].ToString(),
                                     _settingsProvider.GoogleSearchId, _settingsProvider.GoogleSearchToken);
                                 break;
                             case "ask_web":
-                                funcResult = await provider.AskWebpage(args["url"].ToString(),
+                                funcResult = await Tools.AskWebpageAsync(args["url"].ToString(),
                                     args["prompt"].ToString(), _settingsProvider.OpenAiToken);
                                 break;
                         }
