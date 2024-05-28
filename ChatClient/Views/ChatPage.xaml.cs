@@ -123,6 +123,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
 
                         AddToolCall(toolCall);
 
+                        // TODO: API key check. Probably disable functions if key isn't verified
                         funcResult = "Unavailable";
                         switch (toolCall.FunctionCall.Name.ToLower()) {
                             case "google":
@@ -132,6 +133,10 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                             case "ask_web":
                                 funcResult = await Tools.AskWebpageAsync(args["url"].ToString(),
                                     args["prompt"].ToString(), _settingsProvider.OpenAiToken);
+                                break;
+                            case "wolfram":
+                                funcResult = await Tools.AskWolfram(args["query"].ToString(),
+                                    _settingsProvider.WolframToken);
                                 break;
                         }
                     } catch (Exception ex) {
@@ -170,6 +175,10 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             case "ask_web":
                 text = $"Analyzing {ParseDomain(args["url"].ToString())}";
                 iconGlyph = "\uE774";
+                break;
+            case "wolfram":
+                text = "Calculating in Wolfram";
+                iconGlyph = "\uE8EF";
                 break;
         }
 

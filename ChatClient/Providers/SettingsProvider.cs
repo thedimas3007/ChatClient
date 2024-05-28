@@ -83,6 +83,16 @@ namespace ChatClient.Providers {
             set => SetPropertyWithCheck("Google-Search-Verified", value);
         }
 
+        public string WolframToken {
+            get => GetProperty<string>("Wolfram-Token");
+            set => SetPropertyWithCheck("Wolfram-Token", value);
+        }
+
+        public bool WolframTokenVerified {
+            get => GetProperty<bool>("Wolfram-Token-Verified");
+            set => SetPropertyWithCheck("Wolfram-Token-Verified", value);
+        }
+
         public float Temperature {
             get => GetProperty<float?>("Model-Temperature") ?? 1f;
             set => SetPropertyWithCheck("Model-Temperature", value);

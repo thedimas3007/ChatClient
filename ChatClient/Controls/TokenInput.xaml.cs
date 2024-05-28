@@ -44,6 +44,15 @@ namespace ChatClient.Controls {
             set => SetValue(HeaderProperty, value);
         }
 
+        public static readonly DependencyProperty PlaceholderProperty =
+            DependencyProperty.Register("PlaceholderProperty", typeof(string), typeof(TokenInput),
+                new PropertyMetadata(string.Empty));
+
+        public string Placeholder {
+            get => (string)GetValue(PlaceholderProperty);
+            set => SetValue(PlaceholderProperty, value);
+        }
+
         public TokenInput() {
             this.InitializeComponent();
         }

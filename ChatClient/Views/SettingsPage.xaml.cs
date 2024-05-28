@@ -58,7 +58,6 @@ public sealed partial class SettingsPage : Page {
 
         try {
             var result = await openAiService.Models.ListModel();
-            tokenInput.IsEnabled = true;
             if (!result.Successful) {
                 Debug.Fail(result.Error?.Message);
                 return;
@@ -71,14 +70,13 @@ public sealed partial class SettingsPage : Page {
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
-            _settingsProvider.OpenAiTokenVerified = false;
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
+            _settingsProvider.OpenAiTokenVerified = false;
         }
     }
     
     private async void GoogleSearchTokens_OnTokenVerificationRequested(object sender, string e) {
-        TokenInput tokenInput = (TokenInput)sender;
         try {
             await Tools.GoogleAsync("Test", GoogleSearchId.Token, GoogleSearchToken.Token);
             _settingsProvider.GoogleSearchId = GoogleSearchId.Token;
@@ -89,10 +87,24 @@ public sealed partial class SettingsPage : Page {
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
-            _settingsProvider.OpenAiTokenVerified = false;
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
             _settingsProvider.GoogleSearchVerified = false;
+        }
+    }
+    private async void WolframToken_OnTokenVerificationRequested(object sender, string e) {
+        try {
+            await Tools.AskWolfram("2+2", WolframToken.Token);
+            _settingsProvider.WolframToken = WolframToken.Token;
+            _settingsProvider.WolframTokenVerified = true;
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
+            NotificationQueue.Show("Token verified", 2000);
+        } catch (Exception ex) {
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
+            NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
+            Debug.Print("Unable to verify token");
+            Debug.Print(ex.StackTrace);
+            _settingsProvider.WolframTokenVerified = false;
         }
     }
 

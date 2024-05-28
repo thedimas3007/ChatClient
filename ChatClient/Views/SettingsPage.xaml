@@ -32,21 +32,31 @@
                     <controls:SettingsExpander.Items>
                         <controls1:TokenInput x:Name="OpenAiTokenInput"
                                               Header="OpenAI"
+                                              Placeholder="OpenAI Token"
                                               Token="{x:Bind _settingsProvider.OpenAiToken, Mode=OneWay}"
                                               TokenVerified="{x:Bind _settingsProvider.OpenAiTokenVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="OpenAiTokenInput_OnTokenVerificationRequested"/>
                         
                         <controls1:TokenInput x:Name="GoogleSearchId"
                                               Header="Search ID"
+                                              Placeholder="Google Search ID"
                                               Token="{x:Bind _settingsProvider.GoogleSearchId, Mode=OneWay}"
                                               TokenVerified="{x:Bind _settingsProvider.GoogleSearchVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
 
                         <controls1:TokenInput x:Name="GoogleSearchToken"
                                               Header="Search Token"
+                                              Placeholder="Google Search Token"
                                               Token="{x:Bind _settingsProvider.GoogleSearchToken, Mode=OneWay}"
                                               TokenVerified="{x:Bind _settingsProvider.GoogleSearchVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
+
+                        <controls1:TokenInput x:Name="WolframToken"
+                                              Header="Wolfram Token"
+                                              Placeholder="Wolfram Token"
+                                              Token="{x:Bind _settingsProvider.WolframToken, Mode=OneWay}"
+                                              TokenVerified="{x:Bind _settingsProvider.WolframTokenVerified, Mode=TwoWay}"
+                                              TokenVerificationRequested="WolframToken_OnTokenVerificationRequested"/>
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
 

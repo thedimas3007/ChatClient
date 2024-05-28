@@ -14,13 +14,12 @@
         <converters:BoolToObjectConverter x:Key="BoolToIconConverter"
                                           FalseValue="{winUi:FontIcon Glyph=&#xE711;}"
                                           TrueValue="{winUi:FontIcon Glyph=&#xE73E;}" />
-        <converters:StringFormatConverter x:Key="StringFormatConverter"/>
     </UserControl.Resources>
 
     <controls:SettingsCard Header="{x:Bind Header, Mode=OneWay}">
         <StackPanel Orientation="Horizontal">
             <PasswordBox x:Name="TokenPasswordBox"
-                         PlaceholderText="{x:Bind Header, Mode=OneWay, Converter={StaticResource StringFormatConverter}, ConverterParameter='\{0\} token'}"
+                         PlaceholderText="{x:Bind Placeholder, Mode=OneWay}"
                          Width="500"
                          Margin="15,0"
                          PasswordChanged="TokenPasswordBox_PasswordChanged"
