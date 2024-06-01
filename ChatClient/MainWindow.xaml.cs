@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Windows.System;
 using ChatClient.Providers;
 using ChatClient.Repositories;
 using ChatClient.Types;
@@ -7,6 +8,7 @@ using ChatClient.Views;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
+using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 
 namespace ChatClient;
@@ -21,16 +23,7 @@ public sealed partial class MainWindow : Window {
 
         NavigationViewControl.MenuItems.Clear();
         foreach (var chat in _messageRepository.Chats) {
-            var item = new NavigationViewItem {
-                Tag = chat.Id,
-                Icon = new FontIcon { Glyph = "\uE8BD" }
-            };
-            item.SetBinding(ContentControl.ContentProperty, new Binding {
-                Path = new PropertyPath("Title"),
-                Mode = BindingMode.OneWay,
-                Source = chat
-            });
-            NavigationViewControl.MenuItems.Add(item);
+            AddChat(chat);
         }
 
         if (NavigationViewControl.MenuItems.Count > 0)
@@ -39,16 +32,7 @@ public sealed partial class MainWindow : Window {
         SetTitleBar(AppTitleBar);
 
         _messageRepository.ChatCreated += (_, chat) => {
-            var item = new NavigationViewItem {
-                Tag = chat.Id,
-                Icon = new FontIcon { Glyph = "\uE8BD" }
-            };
-            item.SetBinding(ContentControl.ContentProperty, new Binding {
-                Path = new PropertyPath("Title"),
-                Mode = BindingMode.OneWay,
-                Source = chat
-            });
-            NavigationViewControl.MenuItems.Insert(0, item);
+            AddChat(chat);
         };
 
         _messageRepository.ChatDeleted += (_, id) => {
@@ -95,5 +79,36 @@ public sealed partial class MainWindow : Window {
         //ContentFrame.Navigate(typeof(Views.ChatPage), chatParams, new EntranceNavigationTransitionInfo());
         NavigationViewControl.SelectedItem =
             NavigationViewControl.MenuItems.OfType<NavigationViewItem>().FirstOrDefault();
+    }
+
+    private void AddChat(Chat chat) {
+        var deleteItem = new MenuFlyoutItem {
+            Text = "Delete",
+            //KeyboardAccelerators = {
+            //    new KeyboardAccelerator { Modifiers = VirtualKeyModifiers.Control, Key = VirtualKey.D }
+            //},
+            Icon = new FontIcon { Glyph = "\uE74D" }
+        };
+        deleteItem.Click += async (_, _) => {
+            await _messageRepository.DeleteChat(chat.Id);
+        };
+
+        var item = new NavigationViewItem {
+            Tag = chat.Id,
+            Icon = new FontIcon { Glyph = "\uE8BD" },
+            ContextFlyout = new MenuFlyout {
+                Items = {
+                    deleteItem
+                }
+            }
+        };
+
+        item.SetBinding(ContentControl.ContentProperty, new Binding {
+            Path = new PropertyPath("Title"),
+            Mode = BindingMode.OneWay,
+            Source = chat
+        });
+        NavigationViewControl.MenuItems.Insert(0, item);
+
     }
 }

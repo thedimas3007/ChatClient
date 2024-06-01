@@ -32,6 +32,7 @@
     <PackageReference Include="Betalgo.OpenAI" Version="8.1.1" />
     <PackageReference Include="CommunityToolkit.WinUI.Behaviors" Version="8.0.240109" />
     <PackageReference Include="CommunityToolkit.WinUI.Controls.SettingsControls" Version="8.0.240109" />
+    <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.DataGrid" Version="7.1.2" />
     <PackageReference Include="CommunityToolkit.WinUI.UI.Controls.Markdown" Version="7.1.2" />
     <PackageReference Include="Google.Apis.CustomSearchAPI.v1" Version="1.68.0.3395" />
     <PackageReference Include="HtmlAgilityPack" Version="1.11.61" />

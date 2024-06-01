@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using Windows.ApplicationModel.DataTransfer;
 using Windows.System;
 using Windows.UI;
 using ChatClient.Generation;
@@ -211,6 +212,65 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
 
         var toolTip = new ToolTip { Content = param };
         ToolTipService.SetToolTip(stackPanel, toolTip);
+
+        var showRequestItem = new MenuFlyoutItem {
+            Text = "Show Request",
+            Icon = new FontIcon { Glyph = "\uE8FD" }
+        };
+        showRequestItem.Click += async (_, _) => {
+            var dataGrid = new DataGrid {
+                ItemsSource = args,
+                Height = 300,
+                Width = 750
+            };
+
+            var dialog = new ContentDialog {
+                XamlRoot = XamlRoot,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Title = "Request info",
+                CloseButtonText = "Close",
+                Content = dataGrid
+            };
+            await dialog.ShowAsync();
+        };
+
+        var showResponseItem = new MenuFlyoutItem {
+            Text = "Show Response",
+            Icon = new FontIcon { Glyph = "\uE7C3" }
+        };
+        showResponseItem.Click += async (_, _) => {
+            var messages = await _messageRepository.GetMessages(SelectedChat.Id);
+            var response = messages.FirstOrDefault(m => m.ToolCallId == toolCall.Id);
+            var text = "No info";
+            if (response != null) {
+                text = response.Content;
+            }
+
+            var scrollView = new ScrollView() {
+                Height = 300,
+                Width = 750,
+                Content = new TextBlock {
+                    TextWrapping = TextWrapping.Wrap,
+                    Text = text
+                }
+            };
+
+            var dialog = new ContentDialog {
+                XamlRoot = XamlRoot,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Title = "Response info",
+                CloseButtonText = "Close",
+                Content = scrollView
+            };
+            await dialog.ShowAsync();
+        };
+
+        var contextMenu = new MenuFlyout {
+            Items = { showRequestItem, showResponseItem }
+        };
+
+        stackPanel.ContextFlyout = contextMenu;
+
         ListView.Items.Add(stackPanel);
     }
 
