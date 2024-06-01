@@ -10,6 +10,7 @@ using Microsoft.UI.Xaml.Controls;
 using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
+using CommunityToolkit.WinUI.UI.Controls;
 
 namespace ChatClient;
 
@@ -82,6 +83,32 @@ public sealed partial class MainWindow : Window {
     }
 
     private void AddChat(Chat chat) {
+        var infoItem = new MenuFlyoutItem {
+            Text = "Info",
+            Icon = new FontIcon { Glyph = "\uE946" }
+        };
+        infoItem.Click += async (_, _) => {
+            var stackPanel = new StackPanel {
+                Children = {
+                    new TextBlock { Text = $"Id: {chat.Id}" },
+                    new TextBlock { Text = $"Title: {chat.Title}" },
+                    new TextBlock { Text = $"Last Accessed: {chat.LastAccessed}" },
+                    new TextBlock { Text = $"Created At: {chat.CreatedAt}" },
+                    new TextBlock { Text = $"Total Messaged: {(await _messageRepository.GetMessages(chat.Id)).Count}"}
+                }
+            };
+
+            var dialog = new ContentDialog {
+                XamlRoot = this.Content.XamlRoot,
+                Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
+                Title = "Chat info",
+                CloseButtonText = "Close",
+                Content = stackPanel
+            };
+            await dialog.ShowAsync();
+
+        };
+
         var deleteItem = new MenuFlyoutItem {
             Text = "Delete",
             //KeyboardAccelerators = {
@@ -93,13 +120,12 @@ public sealed partial class MainWindow : Window {
             await _messageRepository.DeleteChat(chat.Id);
         };
 
+
         var item = new NavigationViewItem {
             Tag = chat.Id,
             Icon = new FontIcon { Glyph = "\uE8BD" },
             ContextFlyout = new MenuFlyout {
-                Items = {
-                    deleteItem
-                }
+                Items = { infoItem, deleteItem }
             }
         };
 
