@@ -19,7 +19,7 @@ namespace ChatClient.Generation {
         public static readonly Model Gpt4o = new("OpenAI", "gpt-4o", "GPT-4o");
 
         public OpenAIProvider() : 
-            base("OpenAI", new List<Model>() { Gpt35Turbo, Gpt4Turbo, Gpt4o }, true) { }
+            base("OpenAI", new List<Model>() { Gpt35Turbo, Gpt4Turbo, Gpt4o }, true, true) { }
 
         private OpenAIService GetApi(string key) {
             return new OpenAIService(new OpenAiOptions() {

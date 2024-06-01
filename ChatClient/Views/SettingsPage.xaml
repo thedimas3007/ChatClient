@@ -37,21 +37,21 @@
                                               TokenVerified="{x:Bind _settingsProvider.OpenAiTokenVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="OpenAiTokenInput_OnTokenVerificationRequested"/>
                         
-                        <controls1:TokenInput x:Name="GoogleSearchId"
+                        <controls1:TokenInput x:Name="GoogleSearchIdInput"
                                               Header="Search ID"
                                               Placeholder="Google Search ID"
                                               Token="{x:Bind _settingsProvider.GoogleSearchId, Mode=OneWay}"
                                               TokenVerified="{x:Bind _settingsProvider.GoogleSearchVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
 
-                        <controls1:TokenInput x:Name="GoogleSearchToken"
+                        <controls1:TokenInput x:Name="GoogleSearchTokenInput"
                                               Header="Search Token"
                                               Placeholder="Google Search Token"
                                               Token="{x:Bind _settingsProvider.GoogleSearchToken, Mode=OneWay}"
                                               TokenVerified="{x:Bind _settingsProvider.GoogleSearchVerified, Mode=TwoWay}"
                                               TokenVerificationRequested="GoogleSearchTokens_OnTokenVerificationRequested"/>
 
-                        <controls1:TokenInput x:Name="WolframToken"
+                        <controls1:TokenInput x:Name="WolframTokenInput"
                                               Header="Wolfram Token"
                                               Placeholder="Wolfram Token"
                                               Token="{x:Bind _settingsProvider.WolframToken, Mode=OneWay}"
@@ -66,7 +66,8 @@
                     <controls:SettingsExpander.Items>
                         <controls:SettingsCard Header="Streaming">
                             <ToggleSwitch x:Name="StreamingToggle"
-                                          IsOn="{x:Bind _settingsProvider.Streaming, Mode=TwoWay}"
+                                          IsEnabled="{x:Bind StreamingAvailable, Mode=OneWay}"
+                                          IsOn="{x:Bind StreamingEnabled, Mode=TwoWay}"
                                           OnContent="{x:Null}"
                                           OffContent="{x:Null}"
                                           Toggled="StreamingToggle_OnToggled"/>
@@ -74,7 +75,8 @@
 
                         <controls:SettingsCard Header="Functions">
                             <ToggleSwitch x:Name="FunctionsToggle"
-                                          IsOn="{x:Bind _settingsProvider.Functions, Mode=TwoWay}"
+                                          IsEnabled="{x:Bind FunctionsAvailable, Mode=OneWay}"
+                                          IsOn="{x:Bind FunctionsEnabled, Mode=TwoWay}"
                                           OnContent="{x:Null}"
                                           OffContent="{x:Null}"
                                           Toggled="FunctionsToggle_OnToggled"/>

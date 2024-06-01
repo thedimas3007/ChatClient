@@ -18,37 +18,107 @@ using OpenAI.Managers;
 
 namespace ChatClient.Views;
 
-public class BoolToFontIconConverter : IValueConverter {
-    public object Convert(object value, Type targetType, object parameter, string language) {
-        var isTrue = (bool)value;
-        var glyph = isTrue ? "\xE73E" : "\xE711";
-        return new FontIcon { Glyph = glyph };
-    }
-
-    public object ConvertBack(object value, Type targetType, object parameter, string language) {
-        throw new NotImplementedException();
-    }
-}
-
-public sealed partial class SettingsPage : Page {
+public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
     public double Increment => 0.01;
-    private SettingsProvider _settingsProvider; 
+    private SettingsProvider _settingsProvider;
+    private bool _isUpdatingToggles;
+    private bool _streamingAvailable;
+    private bool _streamingEnabled;
+    private bool _functionsAvailable;
+    private bool _functionsEnabled;
+
+    public bool StreamingAvailable {
+        get => _streamingAvailable;
+        set {
+            _streamingAvailable = value;
+            OnPropertyChanged(nameof(StreamingAvailable));
+        }
+    }
+    public bool StreamingEnabled {
+        get => _streamingEnabled;
+        set {
+            _streamingEnabled = value;
+            OnPropertyChanged(nameof(StreamingEnabled));
+        }
+    }
+
+    public bool FunctionsAvailable {
+        get => _functionsAvailable;
+        set {
+            _functionsAvailable = value;
+            OnPropertyChanged(nameof(FunctionsAvailable));
+        }
+    }
+
+    public bool FunctionsEnabled {
+        get => _functionsEnabled;
+        set {
+            _functionsEnabled = value;
+            OnPropertyChanged(nameof(FunctionsEnabled));
+        }
+    }
 
     public SettingsPage() {
         InitializeComponent();
     }
 
+    #region Events
+
+    public event PropertyChangedEventHandler PropertyChanged;
+
     protected override void OnNavigatedTo(NavigationEventArgs e) {
         if (e.Parameter != null) {
             _settingsProvider = (SettingsProvider)e.Parameter;
         }
+        StreamingAvailable = _settingsProvider.Provider.SupportsStreaming;
+        StreamingEnabled = _settingsProvider.Streaming && StreamingAvailable;
+        _settingsProvider.Streaming = StreamingEnabled;
+
+        FunctionsAvailable = _settingsProvider.Provider.SupportsFunctions;
+        FunctionsEnabled = _settingsProvider.Functions && FunctionsAvailable;
+        _settingsProvider.Functions = FunctionsEnabled;
 
         base.OnNavigatedTo(e);
+    }
+
+    private void OnPropertyChanged(string propertyName) {
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
     private void HomeButton_OnClick(object sender, RoutedEventArgs e) {
         Process.Start("explorer.exe", _settingsProvider.LocalDir);
     }
+
+    private void ResetButton_OnClick(object sender, RoutedEventArgs e) {
+        _settingsProvider.Temperature = 1f;
+        _settingsProvider.TopP = 1f;
+        _settingsProvider.FrequencyPenalty = 0f;
+        _settingsProvider.PresencePenalty = 0f;
+    }
+
+    private void StreamingToggle_OnToggled(object sender, RoutedEventArgs e) {
+        _settingsProvider.Streaming = StreamingToggle.IsOn;
+
+        if (_isUpdatingToggles) return;
+
+        _isUpdatingToggles = true;
+        FunctionsEnabled = false;
+        _isUpdatingToggles = false;
+    }
+
+    private void FunctionsToggle_OnToggled(object sender, RoutedEventArgs e) {
+        _settingsProvider.Functions = FunctionsToggle.IsOn;
+        
+        if (_isUpdatingToggles) return;
+
+        _isUpdatingToggles = true;
+        StreamingEnabled = false;
+        _isUpdatingToggles = false;
+    }
+
+    #endregion
+
+    #region Verification
 
     private async void OpenAiTokenInput_OnTokenVerificationRequested(object sender, string e) {
         TokenInput tokenInput = (TokenInput)sender;
@@ -78,9 +148,9 @@ public sealed partial class SettingsPage : Page {
     
     private async void GoogleSearchTokens_OnTokenVerificationRequested(object sender, string e) {
         try {
-            await Tools.GoogleAsync("Test", GoogleSearchId.Token, GoogleSearchToken.Token);
-            _settingsProvider.GoogleSearchId = GoogleSearchId.Token;
-            _settingsProvider.GoogleSearchToken = GoogleSearchToken.Token;
+            await Tools.GoogleAsync("Test", GoogleSearchIdInput.Token, GoogleSearchTokenInput.Token);
+            _settingsProvider.GoogleSearchId = GoogleSearchIdInput.Token;
+            _settingsProvider.GoogleSearchToken = GoogleSearchTokenInput.Token;
             _settingsProvider.GoogleSearchVerified = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
@@ -92,10 +162,11 @@ public sealed partial class SettingsPage : Page {
             _settingsProvider.GoogleSearchVerified = false;
         }
     }
+    
     private async void WolframToken_OnTokenVerificationRequested(object sender, string e) {
         try {
-            await Tools.AskWolfram("2+2", WolframToken.Token);
-            _settingsProvider.WolframToken = WolframToken.Token;
+            await Tools.AskWolfram("2+2", WolframTokenInput.Token);
+            _settingsProvider.WolframToken = WolframTokenInput.Token;
             _settingsProvider.WolframTokenVerified = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
@@ -107,19 +178,6 @@ public sealed partial class SettingsPage : Page {
             _settingsProvider.WolframTokenVerified = false;
         }
     }
-
-    private void ResetButton_OnClick(object sender, RoutedEventArgs e) {
-        _settingsProvider.Temperature = 1f;
-        _settingsProvider.TopP = 1f;
-        _settingsProvider.FrequencyPenalty = 0f;
-        _settingsProvider.PresencePenalty = 0f;
-    }
-
-    private void StreamingToggle_OnToggled(object sender, RoutedEventArgs e) {
-        FunctionsToggle.IsOn = false;
-    }
-
-    private void FunctionsToggle_OnToggled(object sender, RoutedEventArgs e) {
-        StreamingToggle.IsOn = false;
-    }
+ 
+    #endregion
 }

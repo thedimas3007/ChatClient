@@ -27,12 +27,14 @@ namespace ChatClient.Generation {
 
         public readonly string Name;
         public readonly List<Model> Models;
-        public readonly bool SupportStreaming;
+        public readonly bool SupportsStreaming;
+        public readonly bool SupportsFunctions;
 
-        protected GenerationProvider(string name, List<Model> models, bool supportStreaming) {
+        protected GenerationProvider(string name, List<Model> models, bool supportsStreaming, bool supportsFunctions) {
             Name = name;
             Models = models;
-            SupportStreaming = supportStreaming;
+            SupportsStreaming = supportsStreaming;
+            SupportsFunctions = supportsFunctions;
         }
 
         public IReadOnlyCollection<Model> GetModels(string name) {
