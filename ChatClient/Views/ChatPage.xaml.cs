@@ -78,84 +78,90 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
     }
 
     public async Task GenerateResult() {
-        var messages = await _messageRepository.GetMessages(SelectedChat.Id);
-        var settings = new GenerationSettings() {
-            Model = _settingsProvider.Model,
-            Temperature = _settingsProvider.Temperature,
-            TopP = _settingsProvider.TopP,
-            FrequencyPenalty = _settingsProvider.FrequencyPenalty,
-            PresencePenalty = _settingsProvider.PresencePenalty,
-            Token = _settingsProvider.OpenAiToken,
-        };
-        GenerationProvider provider = new OpenAIProvider();
-        var tools = new List<ToolDefinition>();
-        if (_settingsProvider.GoogleEnabled) tools.Add(Tools.AllTools[0]);
-        if (_settingsProvider.AskWebEnabled) tools.Add(Tools.AllTools[1]);
-        if (_settingsProvider.WolframEnabled) tools.Add(Tools.AllTools[2]);
+        try {
+            var messages = await _messageRepository.GetMessages(SelectedChat.Id);
+            var settings = new GenerationSettings() {
+                Model = _settingsProvider.Model,
+                Temperature = _settingsProvider.Temperature,
+                TopP = _settingsProvider.TopP,
+                FrequencyPenalty = _settingsProvider.FrequencyPenalty,
+                PresencePenalty = _settingsProvider.PresencePenalty,
+                Token = _settingsProvider.OpenAiToken,
+            };
+            GenerationProvider provider = new OpenAIProvider();
+            var tools = new List<ToolDefinition>();
+            if (_settingsProvider.GoogleEnabled) tools.Add(Tools.AllTools[0]);
+            if (_settingsProvider.AskWebEnabled) tools.Add(Tools.AllTools[1]);
+            if (_settingsProvider.WolframEnabled) tools.Add(Tools.AllTools[2]);
 
-        if (_settingsProvider.Streaming) {
-            var message = new ChatMessage("assistant", "");
-            AddMessageElement(message);
+            if (_settingsProvider.Streaming) {
+                var message = new ChatMessage("assistant", "");
+                AddMessageElement(message);
 
-            var call = provider.GenerateResponseAsStreamAsync(messages, settings, tools.Count > 0 ? tools : null);
+                var call = provider.GenerateResponseAsStreamAsync(messages, settings, tools.Count > 0 ? tools : null);
 
-            string response = "";
-            await foreach (var result in call) {
-                UpdateLastMessageElement(result.Content);
-                response += result.Content;
-            }
-
-            message.Content = response;
-            await _messageRepository.CreateMessage(SelectedChat.Id, message);
-        } else {
-            var result = await provider.GenerateResponseAsync(messages, settings, tools.Count > 0 ? tools : null);
-            var message = new ChatMessage(result.Role, result.Content, result.Name, result.ToolCalls,
-                result.ToolCallId);
-            AddMessageElement(message);
-            await _messageRepository.CreateMessage(SelectedChat.Id, message);
-            if (result.ToolCalls != null) {
-                foreach (var toolCall in result.ToolCalls) {
-                    var funcResult = "";
-                    try {
-                        var name = toolCall.FunctionCall.Name;
-                        var args = toolCall.FunctionCall.ParseArguments();
-
-                        var sb = new StringBuilder();
-                        foreach (var kv in args) {
-                            sb.AppendLine($"{kv.Key}: {kv.Value}");
-                        }
-
-                        AddToolCall(toolCall);
-
-                        // TODO: API key check. Probably disable functions if key isn't verified
-                        funcResult = "Unavailable";
-                        switch (toolCall.FunctionCall.Name.ToLower()) {
-                            case "google":
-                                funcResult = await Tools.GoogleAsync(args["query"].ToString(),
-                                    _settingsProvider.GoogleSearchId, _settingsProvider.GoogleSearchToken);
-                                break;
-                            case "ask_web":
-                                funcResult = await Tools.AskWebpageAsync(args["url"].ToString(),
-                                    args["prompt"].ToString(), _settingsProvider.OpenAiToken);
-                                break;
-                            case "wolfram":
-                                funcResult = await Tools.AskWolfram(args["query"].ToString(),
-                                    _settingsProvider.WolframToken);
-                                break;
-                        }
-                    } catch (Exception ex) {
-                        funcResult = $"Unable to use {toolCall.FunctionCall.Name}: {ex.GetType().Name} - {ex.Message}";
-                        NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000,
-                            $"Unable to use {toolCall.FunctionCall.Name}");
-                        Debug.Print(ex.StackTrace);
-                    }
-
-                    await _messageRepository.CreateMessage(SelectedChat.Id,
-                        ChatMessage.FromTool(funcResult, toolCall.Id));
+                string response = "";
+                await foreach (var result in call) {
+                    UpdateLastMessageElement(result.Content);
+                    response += result.Content;
                 }
 
-                await GenerateResult();
+                message.Content = response;
+                await _messageRepository.CreateMessage(SelectedChat.Id, message);
+            } else {
+                var result = await provider.GenerateResponseAsync(messages, settings, tools.Count > 0 ? tools : null);
+                var message = new ChatMessage(result.Role, result.Content, result.Name, result.ToolCalls,
+                    result.ToolCallId);
+                AddMessageElement(message);
+                await _messageRepository.CreateMessage(SelectedChat.Id, message);
+                if (result.ToolCalls != null) {
+                    foreach (var toolCall in result.ToolCalls) {
+                        var funcResult = "";
+                        try {
+                            var name = toolCall.FunctionCall.Name;
+                            var args = toolCall.FunctionCall.ParseArguments();
+
+                            var sb = new StringBuilder();
+                            foreach (var kv in args) {
+                                sb.AppendLine($"{kv.Key}: {kv.Value}");
+                            }
+
+                            AddToolCall(toolCall);
+
+                            // TODO: API key check. Probably disable functions if key isn't verified
+                            funcResult = "Unavailable";
+                            switch (toolCall.FunctionCall.Name.ToLower()) {
+                                case "google":
+                                    funcResult = await Tools.GoogleAsync(args["query"].ToString(),
+                                        _settingsProvider.GoogleSearchId, _settingsProvider.GoogleSearchToken);
+                                    break;
+                                case "ask_web":
+                                    funcResult = await Tools.AskWebpageAsync(args["url"].ToString(),
+                                        args["prompt"].ToString(), _settingsProvider.OpenAiToken);
+                                    break;
+                                case "wolfram":
+                                    funcResult = await Tools.AskWolfram(args["query"].ToString(),
+                                        _settingsProvider.WolframToken);
+                                    break;
+                            }
+                        } catch (Exception ex) {
+                            funcResult =
+                                $"Unable to use {toolCall.FunctionCall.Name}: {ex.GetType().Name} - {ex.Message}";
+                            NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000,
+                                $"Unable to use {toolCall.FunctionCall.Name}");
+                            Debug.Print(ex.StackTrace);
+                        }
+
+                        await _messageRepository.CreateMessage(SelectedChat.Id,
+                            ChatMessage.FromTool(funcResult, toolCall.Id));
+                    }
+
+                    await GenerateResult();
+                }
             }
+        } catch (Exception ex) {
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
+            NotificationQueue.Show($"{ex.GetType()}: {ex.Message}", 2000, "Unable to send the message");
         }
     }
 
@@ -335,10 +341,15 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         var message = new ChatMessage("user", text);
         AddMessageElement(message);
 
-        if (!await _messageRepository.HasMessages(SelectedChat.Id)) {
-            var title = await GenerateTitle(text);
-            await _messageRepository.UpdateChat(SelectedChat.Id, "title", title);
-            HeaderTextBlock.Text = title;
+        try {
+            if (!await _messageRepository.HasMessages(SelectedChat.Id)) {
+                var title = await GenerateTitle(text);
+                await _messageRepository.UpdateChat(SelectedChat.Id, "title", title);
+                HeaderTextBlock.Text = title;
+            }
+        } catch (Exception ex) {
+            NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
+            NotificationQueue.Show($"{ex.GetType()}: {ex.Message}", 2000, "Unable to generate the title");
         }
 
         await _messageRepository.CreateMessage(SelectedChat.Id, message);
