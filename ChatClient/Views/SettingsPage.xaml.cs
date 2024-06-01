@@ -26,6 +26,9 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
     private bool _streamingEnabled;
     private bool _functionsAvailable;
     private bool _functionsEnabled;
+    private bool _googleAvailable;
+    private bool _askWebAvailable;
+    private bool _wolframAvailable;
 
     public bool StreamingAvailable {
         get => _streamingAvailable;
@@ -58,6 +61,30 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
         }
     }
 
+    public bool GoogleAvailable {
+        get => _googleAvailable;
+        set {
+            _googleAvailable = value;
+            OnPropertyChanged(nameof(GoogleAvailable));
+        }
+    }
+
+    public bool AskWebAvailable {
+        get => _askWebAvailable;
+        set {
+            _askWebAvailable = value;
+            OnPropertyChanged(nameof(AskWebAvailable));
+        }
+    }
+
+    public bool WolframAvailable {
+        get => _wolframAvailable;
+        set {
+            _wolframAvailable = value;
+            OnPropertyChanged(nameof(WolframAvailable));
+        }
+    }
+
     public SettingsPage() {
         InitializeComponent();
     }
@@ -78,6 +105,9 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
         FunctionsEnabled = _settingsProvider.Functions && FunctionsAvailable;
         _settingsProvider.Functions = FunctionsEnabled;
 
+        GoogleAvailable = _settingsProvider.GoogleSearchVerified;
+        AskWebAvailable = _settingsProvider.OpenAiTokenVerified;
+        WolframAvailable = _settingsProvider.WolframTokenVerified;
         base.OnNavigatedTo(e);
     }
 
@@ -94,6 +124,12 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
         _settingsProvider.TopP = 1f;
         _settingsProvider.FrequencyPenalty = 0f;
         _settingsProvider.PresencePenalty = 0f;
+
+        // Fix as Binding doesn't work /shrug
+        TemperatureBox.Value = _settingsProvider.Temperature;
+        TopPBox.Value = _settingsProvider.TopP;
+        FrequencyPenaltyBox.Value = _settingsProvider.FrequencyPenalty;
+        PresencePenaltyBox.Value = _settingsProvider.PresencePenalty;
     }
 
     private void StreamingToggle_OnToggled(object sender, RoutedEventArgs e) {
@@ -135,6 +171,8 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
 
             _settingsProvider.OpenAiToken = tokenInput.Token;
             _settingsProvider.OpenAiTokenVerified = true;
+            OpenAiTokenInput.TokenVerified = true;
+            AskWebAvailable = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
         } catch (Exception ex) {
@@ -143,6 +181,8 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
             _settingsProvider.OpenAiTokenVerified = false;
+            OpenAiTokenInput.TokenVerified = false;
+            AskWebAvailable = false;
         }
     }
     
@@ -152,6 +192,9 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             _settingsProvider.GoogleSearchId = GoogleSearchIdInput.Token;
             _settingsProvider.GoogleSearchToken = GoogleSearchTokenInput.Token;
             _settingsProvider.GoogleSearchVerified = true;
+            GoogleSearchTokenInput.TokenVerified = true;
+            GoogleSearchIdInput.TokenVerified = true;
+            GoogleAvailable = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
         } catch (Exception ex) {
@@ -160,6 +203,9 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
             _settingsProvider.GoogleSearchVerified = false;
+            GoogleSearchTokenInput.TokenVerified = false;
+            GoogleSearchIdInput.TokenVerified = false;
+            GoogleAvailable = false;
         }
     }
     
@@ -168,6 +214,8 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             await Tools.AskWolfram("2+2", WolframTokenInput.Token);
             _settingsProvider.WolframToken = WolframTokenInput.Token;
             _settingsProvider.WolframTokenVerified = true;
+            WolframTokenInput.TokenVerified = true;
+            WolframAvailable = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
         } catch (Exception ex) {
@@ -176,6 +224,8 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             Debug.Print("Unable to verify token");
             Debug.Print(ex.StackTrace);
             _settingsProvider.WolframTokenVerified = false;
+            WolframTokenInput.TokenVerified = false;
+            WolframAvailable = false;
         }
     }
  

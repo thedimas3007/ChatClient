@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
@@ -16,11 +17,56 @@ namespace ChatClient.Providers {
         private readonly string _filename;
         private Dictionary<string, JsonValue> _settings;
 
+        #region Files
+
         public string LocalDir => _localDir;
 
         public string ConfigPath => _configPath;
 
         public string Filename => _filename;
+
+        #endregion
+
+        #region Tokens
+
+        public string OpenAiToken {
+            get => GetProperty<string>("OpenAI-Token");
+            set => SetPropertyWithCheck("OpenAI-Token", value);
+        }
+
+        public bool OpenAiTokenVerified {
+            get => GetProperty<bool>("OpenAI-Token-Verified");
+            set => SetPropertyWithCheck("OpenAI-Token-Verified", value);
+        }
+
+        public string GoogleSearchId {
+            get => GetProperty<string>("Google-Search-ID");
+            set => SetPropertyWithCheck("Google-Search-ID", value);
+        }
+
+        public string GoogleSearchToken {
+            get => GetProperty<string>("Google-Search-Token");
+            set => SetPropertyWithCheck("Google-Search-Token", value);
+        }
+
+        public bool GoogleSearchVerified {
+            get => GetProperty<bool>("Google-Search-Verified");
+            set => SetPropertyWithCheck("Google-Search-Verified", value);
+        }
+
+        public string WolframToken {
+            get => GetProperty<string>("Wolfram-Token");
+            set => SetPropertyWithCheck("Wolfram-Token", value);
+        }
+
+        public bool WolframTokenVerified {
+            get => GetProperty<bool>("Wolfram-Token-Verified");
+            set => SetPropertyWithCheck("Wolfram-Token-Verified", value);
+        }
+
+        #endregion
+
+        #region Generation Settings
 
         public bool Streaming {
             get => GetProperty<bool>("Streaming", true);
@@ -58,40 +104,9 @@ namespace ChatClient.Providers {
             set => SetPropertyWithCheck("Model", value.Id);
         }
 
-        public string OpenAiToken {
-            get => GetProperty<string>("OpenAI-Token");
-            set => SetPropertyWithCheck("OpenAI-Token", value);
-        }
+        #endregion
 
-        public bool OpenAiTokenVerified {
-            get => GetProperty<bool>("OpenAI-Token-Verified");
-            set => SetPropertyWithCheck("OpenAI-Token-Verified", value);
-        }
-
-        public string GoogleSearchId {
-            get => GetProperty<string>("Google-Search-ID");
-            set => SetPropertyWithCheck("Google-Search-ID", value);
-        }
-
-        public string GoogleSearchToken {
-            get => GetProperty<string>("Google-Search-Token");
-            set => SetPropertyWithCheck("Google-Search-Token", value);
-        }
-
-        public bool GoogleSearchVerified {
-            get => GetProperty<bool>("Google-Search-Verified");
-            set => SetPropertyWithCheck("Google-Search-Verified", value);
-        }
-
-        public string WolframToken {
-            get => GetProperty<string>("Wolfram-Token");
-            set => SetPropertyWithCheck("Wolfram-Token", value);
-        }
-
-        public bool WolframTokenVerified {
-            get => GetProperty<bool>("Wolfram-Token-Verified");
-            set => SetPropertyWithCheck("Wolfram-Token-Verified", value);
-        }
+        #region Model Parameters
 
         public float Temperature {
             get => GetProperty<float?>("Model-Temperature") ?? 1f;
@@ -112,6 +127,27 @@ namespace ChatClient.Providers {
             get => GetProperty<float?>("Model-PresencePenalty") ?? 0f;
             set => SetPropertyWithCheck("Model-PresencePenalty", value);
         }
+
+        #endregion
+
+        #region Enabled Functions
+
+        public bool GoogleEnabled {
+            get => GetProperty<bool>("Google-Enabled", true);
+            set => SetPropertyWithCheck("Google-Enabled", value);
+        }
+
+        public bool AskWebEnabled {
+            get => GetProperty<bool>("AskWeb-Enabled", true);
+            set => SetPropertyWithCheck("AskWeb-Enabled", value);
+        }
+
+        public bool WolframEnabled {
+            get => GetProperty<bool>("Wolfram-Enabled", true);
+            set => SetPropertyWithCheck("Wolfram-Enabled", value);
+        }
+
+        #endregion
 
         public SettingsProvider(string filename = "appdata.json") {
             string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);

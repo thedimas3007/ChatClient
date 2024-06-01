@@ -11,6 +11,7 @@ using ChatClient.Repositories;
 using Google.Apis.CustomSearchAPI.v1;
 using Google.Apis.Services;
 using HtmlAgilityPack;
+using OpenAI.ObjectModels.RequestModels;
 using OpenAI.Tokenizer.GPT3;
 using SharpToken;
 
@@ -46,7 +47,7 @@ namespace ChatClient.Generation {
             return provider.Models;
         }
 
-        public abstract Task<MessageResponse> GenerateResponseAsync(List<Message> messages, GenerationSettings settings, bool withTools = false);
-        public abstract IAsyncEnumerable<MessageResponse> GenerateResponseAsStreamAsync(List<Message> messages, GenerationSettings settings, bool withTools = false);
+        public abstract Task<MessageResponse> GenerateResponseAsync(List<Message> messages, GenerationSettings settings, List<ToolDefinition> tools = null);
+        public abstract IAsyncEnumerable<MessageResponse> GenerateResponseAsStreamAsync(List<Message> messages, GenerationSettings settings, List<ToolDefinition> tools = null);
     }
 }

@@ -88,12 +88,16 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             Token = _settingsProvider.OpenAiToken,
         };
         GenerationProvider provider = new OpenAIProvider();
+        var tools = new List<ToolDefinition>();
+        if (_settingsProvider.GoogleEnabled) tools.Add(Tools.AllTools[0]);
+        if (_settingsProvider.AskWebEnabled) tools.Add(Tools.AllTools[1]);
+        if (_settingsProvider.WolframEnabled) tools.Add(Tools.AllTools[2]);
 
         if (_settingsProvider.Streaming) {
             var message = new ChatMessage("assistant", "");
             AddMessageElement(message);
 
-            var call = provider.GenerateResponseAsStreamAsync(messages, settings, _settingsProvider.Functions);
+            var call = provider.GenerateResponseAsStreamAsync(messages, settings, tools.Count > 0 ? tools : null);
 
             string response = "";
             await foreach (var result in call) {
@@ -104,7 +108,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             message.Content = response;
             await _messageRepository.CreateMessage(SelectedChat.Id, message);
         } else {
-            var result = await provider.GenerateResponseAsync(messages, settings, _settingsProvider.Functions);
+            var result = await provider.GenerateResponseAsync(messages, settings, tools.Count > 0 ? tools : null);
             var message = new ChatMessage(result.Role, result.Content, result.Name, result.ToolCalls,
                 result.ToolCallId);
             AddMessageElement(message);

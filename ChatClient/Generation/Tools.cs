@@ -15,12 +15,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using OpenAI.ObjectModels.SharedModels;
+using WinRT;
 
 namespace ChatClient.Generation {
     internal class Tools {
-        public static readonly ReadOnlyCollection<ToolDefinition> tools = new List<ToolDefinition>() { // TODO: make it universal for all providers
+        public static readonly ReadOnlyCollection<ToolDefinition> AllTools = new List<ToolDefinition>() { // TODO: make it universal for all providers
             ToolDefinition.DefineFunction(new FunctionDefinitionBuilder("google",
-                    "Search a prompt online. Returns 10 results (url and title). Better send multiple prompts as separate messages at once. Don't use it for general knowledge and obvious, basic questions")
+                    "Search a prompt online. Returns 10 results (url and title). Better send multiple prompts at once. Don't use it for general knowledge and obvious, basic questions")
                 .AddParameter("query", PropertyDefinition.DefineString("The query to be searched"))
                 .Validate()
                 .Build()),
@@ -36,7 +37,6 @@ namespace ChatClient.Generation {
             .Validate()
             .Build())
         }.AsReadOnly();
-
 
         private static async Task<string> ParseBody(string url) {
             HtmlWeb web = new HtmlWeb();

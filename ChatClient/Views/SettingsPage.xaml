@@ -107,14 +107,15 @@
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
 
-                <controls:SettingsExpander Header="Model Parameters"
+                 <controls:SettingsExpander Header="Model Parameters"
                                            HeaderIcon="{ui:FontIcon Glyph=&#xF22C;}"
-                                           IsExpanded="True">
+                                           IsExpanded="False">
                     <Button Content="Reset"
                             Click="ResetButton_OnClick" />
                     <controls:SettingsExpander.Items>
                         <controls:SettingsCard Header="Temperature">
-                            <NumberBox Value="{x:Bind _settingsProvider.Temperature, Mode=TwoWay}"
+                            <NumberBox x:Name="TemperatureBox"
+                                       Value="{x:Bind _settingsProvider.Temperature, Mode=TwoWay}"
                                        SpinButtonPlacementMode="Compact"
                                        Minimum="0"
                                        Maximum="2"
@@ -131,7 +132,8 @@
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="Top P">
-                            <NumberBox Value="{x:Bind _settingsProvider.TopP, Mode=TwoWay}"
+                            <NumberBox x:Name="TopPBox"
+                                       Value="{x:Bind _settingsProvider.TopP, Mode=TwoWay}"
                                        SpinButtonPlacementMode="Compact"
                                        Minimum="0"
                                        Maximum="1"
@@ -148,7 +150,8 @@
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="Frequency Penalty">
-                            <NumberBox Value="{x:Bind _settingsProvider.FrequencyPenalty, Mode=TwoWay}"
+                            <NumberBox x:Name="FrequencyPenaltyBox"
+                                       Value="{x:Bind _settingsProvider.FrequencyPenalty, Mode=TwoWay}"
                                        SpinButtonPlacementMode="Compact"
                                        Minimum="0"
                                        Maximum="2"
@@ -165,7 +168,8 @@
                         </controls:SettingsCard>
 
                         <controls:SettingsCard Header="Presence Penalty">
-                            <NumberBox Value="{x:Bind _settingsProvider.PresencePenalty, Mode=TwoWay}"
+                            <NumberBox x:Name="PresencePenaltyBox"
+                                       Value="{x:Bind _settingsProvider.PresencePenalty, Mode=TwoWay}"
                                        SpinButtonPlacementMode="Compact"
                                        Minimum="0"
                                        Maximum="2"
@@ -183,6 +187,38 @@
                     </controls:SettingsExpander.Items>
                 </controls:SettingsExpander>
                 
+                <!-- TODO: smarter tool selection -->
+                <controls:SettingsExpander Header="Available Functions"
+                                           HeaderIcon="{ui:FontIcon Glyph=&#xE90F;}"
+                                           IsExpanded="False"
+                                           IsEnabled="{x:Bind FunctionsEnabled, Mode=OneWay}">
+                    <controls:SettingsExpander.Items>
+                        <controls:SettingsCard Header="Google"
+                                               IsEnabled="{x:Bind GoogleAvailable, Mode=OneWay}">
+                            <ToggleSwitch x:Name="GoogleToggle"
+                                          IsOn="{x:Bind _settingsProvider.GoogleEnabled, Mode=TwoWay}"
+                                          OnContent="{x:Null}"
+                                          OffContent="{x:Null}"/>
+                        </controls:SettingsCard>
+
+                        <controls:SettingsCard Header="Web Analyzer"
+                                               IsEnabled="{x:Bind AskWebAvailable, Mode=OneWay}">
+                            <ToggleSwitch x:Name="AskWebToggle"
+                                          IsOn="{x:Bind _settingsProvider.AskWebEnabled, Mode=TwoWay}"
+                                          OnContent="{x:Null}"
+                                          OffContent="{x:Null}"/>
+                        </controls:SettingsCard>
+
+                        <controls:SettingsCard Header="Wolfram Alpha"
+                                               IsEnabled="{x:Bind WolframAvailable, Mode=OneWay}">
+                            <ToggleSwitch x:Name="WolframToggle"
+                                          IsOn="{x:Bind _settingsProvider.WolframEnabled, Mode=TwoWay}"
+                                          OnContent="{x:Null}"
+                                          OffContent="{x:Null}"/>
+                        </controls:SettingsCard>
+                    </controls:SettingsExpander.Items>
+                </controls:SettingsExpander>
+
                 <controls:SettingsCard Header="App Directory"
                                        HeaderIcon="{ui:FontIcon Glyph=&#xE8B7;}">
                     <Button x:Name="HomeButton" Content="Open" Click="HomeButton_OnClick" />

@@ -27,7 +27,7 @@ namespace ChatClient.Generation {
             });
         }
 
-        public override async Task<MessageResponse> GenerateResponseAsync(List<Message> messages, GenerationSettings settings, bool withTools = false) {
+        public override async Task<MessageResponse> GenerateResponseAsync(List<Message> messages, GenerationSettings settings, List<ToolDefinition> tools = null) {
             if (!Models.Any(m => m.Id == settings.Model.Id)) {
                 throw new ArgumentException($"Model {settings.Model.Id} is either not found or not available.");
             }
@@ -41,7 +41,7 @@ namespace ChatClient.Generation {
                 TopP = settings.TopP,
                 FrequencyPenalty = settings.FrequencyPenalty,
                 PresencePenalty = settings.PresencePenalty,
-                Tools = withTools ? Tools.tools : null
+                Tools = tools
             });
             var message = response.Choices.First().Message;
             return new MessageResponse(message.Role, message.Content, message.Name, message.ToolCallId,
@@ -49,7 +49,7 @@ namespace ChatClient.Generation {
         }
 
         public override async IAsyncEnumerable<MessageResponse> GenerateResponseAsStreamAsync(List<Message> messages,
-            GenerationSettings settings, bool withTools) {
+            GenerationSettings settings, List<ToolDefinition> tools = null) {
             if (!Models.Any(m => m.Id == settings.Model.Id)) {
                 throw new ArgumentException($"Model {settings.Model.Id} is either not found or not available.");
             }
@@ -62,7 +62,7 @@ namespace ChatClient.Generation {
                 TopP = settings.TopP,
                 FrequencyPenalty = settings.FrequencyPenalty,
                 PresencePenalty = settings.PresencePenalty,
-                Tools = withTools ? Tools.tools : null
+                Tools = tools
             });
             await foreach (var response in call) {
                 if (!response.Successful) {
