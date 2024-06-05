@@ -1,26 +1,13 @@
+using CommunityToolkit.WinUI.Controls;
 using Microsoft.UI.Xaml;
 using Microsoft.UI.Xaml.Controls;
-using Microsoft.UI.Xaml.Controls.Primitives;
 using Microsoft.UI.Xaml.Data;
-using Microsoft.UI.Xaml.Input;
-using Microsoft.UI.Xaml.Media;
-using Microsoft.UI.Xaml.Navigation;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-
-// To learn more about WinUI, the WinUI project structure,
-// and more about our project templates, see: http://aka.ms/winui-project-info.
 
 namespace ChatClient.Controls {
-    public sealed partial class TokenInput : UserControl {
+    public sealed partial class TokenInput : SettingsCard {
         public static readonly DependencyProperty TokenProperty =
-            DependencyProperty.Register("Token", typeof(string), typeof(TokenInput),
-                new PropertyMetadata(string.Empty));
+            DependencyProperty.Register("Token", typeof(string), typeof(TokenInput), new PropertyMetadata(string.Empty));
 
         public string Token {
             get => (string)GetValue(TokenProperty) ?? "non-set";
@@ -35,18 +22,8 @@ namespace ChatClient.Controls {
             set => SetValue(TokenVerifiedProperty, value);
         }
 
-        public static readonly DependencyProperty HeaderProperty =
-            DependencyProperty.Register("HeaderProperty", typeof(string), typeof(TokenInput),
-                new PropertyMetadata(string.Empty));
-
-        public string Header {
-            get => (string)GetValue(HeaderProperty);
-            set => SetValue(HeaderProperty, value);
-        }
-
         public static readonly DependencyProperty PlaceholderProperty =
-            DependencyProperty.Register("PlaceholderProperty", typeof(string), typeof(TokenInput),
-                new PropertyMetadata(string.Empty));
+            DependencyProperty.Register("Placeholder", typeof(string), typeof(TokenInput), new PropertyMetadata(string.Empty));
 
         public string Placeholder {
             get => (string)GetValue(PlaceholderProperty);
@@ -54,7 +31,7 @@ namespace ChatClient.Controls {
         }
 
         public TokenInput() {
-            this.InitializeComponent();
+            InitializeComponent();
         }
 
         public event EventHandler<string> TokenVerificationRequested;
