@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using ChatClient.Generation;
+using Serilog;
 
 namespace ChatClient.Providers {
     internal class SettingsProvider : INotifyPropertyChanged {
@@ -162,9 +163,9 @@ namespace ChatClient.Providers {
             try {
                 string content = File.ReadAllText(ConfigPath);
                 _settings = JsonSerializer.Deserialize<Dictionary<string, JsonValue>>(content);
-            } catch {
+            } catch (Exception ex) {
                 File.WriteAllText(_configPath, "{}");
-                Debug.Print("Invalid JSON");
+                Log.Warning(ex, "Unable to parse JSON");
                 _settings = new();
             }
         }

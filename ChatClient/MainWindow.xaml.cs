@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Linq;
 using Windows.System;
 using ChatClient.Providers;
@@ -11,12 +12,14 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using CommunityToolkit.WinUI.UI.Controls;
+using Windows.UI.Popups;
 
 namespace ChatClient;
 
 public sealed partial class MainWindow : Window {
     private readonly MessageRepository _messageRepository = new();
     private readonly SettingsProvider _settingsProvider = new();
+    private readonly string _localDir = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "ChatClient");
 
     public MainWindow() {
         InitializeComponent();
@@ -99,7 +102,7 @@ public sealed partial class MainWindow : Window {
             };
 
             var dialog = new ContentDialog {
-                XamlRoot = this.Content.XamlRoot,
+                XamlRoot = Content.XamlRoot,
                 Style = Application.Current.Resources["DefaultContentDialogStyle"] as Style,
                 Title = "Chat info",
                 CloseButtonText = "Close",

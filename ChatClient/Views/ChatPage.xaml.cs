@@ -26,6 +26,7 @@ using OpenAI.ObjectModels;
 using OpenAI.ObjectModels.RequestModels;
 using Microsoft.UI.Input;
 using Windows.UI.Core;
+using Serilog;
 
 namespace ChatClient.Views;
 
@@ -73,7 +74,8 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                 ChatMessage.FromUser(startMessage)
             },
             Model = Models.Gpt_3_5_Turbo,
-            MaxTokens = 16 // probably increase for non-English languages
+            MaxTokens = 16, // probably increase for non-English languages
+            Stop = "\n"
         });
         return response.Choices[0].Message.Content?.Replace("\"", "").Replace("'", "");
     }
@@ -118,9 +120,9 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                 if (result.ToolCalls != null) {
                     foreach (var toolCall in result.ToolCalls) {
                         var funcResult = "";
+                        var name = toolCall.FunctionCall.Name;
+                        var args = toolCall.FunctionCall.ParseArguments();
                         try {
-                            var name = toolCall.FunctionCall.Name;
-                            var args = toolCall.FunctionCall.ParseArguments();
 
                             var sb = new StringBuilder();
                             foreach (var kv in args) {
@@ -131,7 +133,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
 
                             // TODO: API key check. Probably disable functions if key isn't verified
                             funcResult = "Unavailable";
-                            switch (toolCall.FunctionCall.Name.ToLower()) {
+                            switch (name.ToLower()) {
                                 case "google":
                                     funcResult = await Tools.GoogleAsync(args["query"].ToString(),
                                         _settingsProvider.GoogleSearchId, _settingsProvider.GoogleSearchToken);
@@ -147,10 +149,10 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                             }
                         } catch (Exception ex) {
                             funcResult =
-                                $"Unable to use {toolCall.FunctionCall.Name}: {ex.GetType().Name} - {ex.Message}";
+                                $"Unable to use {name}: {ex.GetType().Name} - {ex.Message}";
                             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000,
-                                $"Unable to use {toolCall.FunctionCall.Name}");
-                            Debug.Print(ex.StackTrace);
+                                $"Unable to use {name}");
+                            Log.Error(ex, "Unable to use {@Name} with {@Args}", name, args);
                         }
 
                         await _messageRepository.CreateMessage(SelectedChat.Id,

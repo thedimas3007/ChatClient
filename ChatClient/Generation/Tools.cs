@@ -15,6 +15,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using OpenAI.ObjectModels.SharedModels;
+using Serilog;
 using WinRT;
 
 namespace ChatClient.Generation {
@@ -72,6 +73,11 @@ namespace ChatClient.Generation {
             }
         }
 
+        private static string ParseDomain(string url) {
+            var match = Regex.Match(url, @"^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?");
+            return match.Groups[4].Value;
+        }
+
         public static async Task<string> GoogleAsync(string query, string searchId, string searchToken) {
             var searchAPI = new CustomSearchAPIService(new BaseClientService.Initializer { ApiKey = searchToken });
             var request = searchAPI.Cse.List();
@@ -86,18 +92,17 @@ namespace ChatClient.Generation {
             var encoding = GptEncoding.GetEncodingForModel(model);
 
             var pageText = await ParseBody(url);
-            Debug.Print(pageText);
             var tokenGroups = encoding.Encode(pageText)
                 .Select((value, index) => new { value, index })
                 .GroupBy(x => x.index / 4096)
                 .Select(group => group.Select(x => x.value).ToList())
                 .ToList();
 
-            Debug.Print($"Starting to analyze page in {tokenGroups.Count} chunks");
+            Log.Information("Starting analysis of {@Page} in {@Chunks} chunks", ParseDomain(url), tokenGroups.Count);
 
             var sb = new StringBuilder();
+            var start = DateTime.Now;
             for (int i = 0; i < tokenGroups.Count; i++) {
-                Debug.Print($"Group {i + 1}/{tokenGroups.Count}");
                 var tokenGroup = tokenGroups[i];
                 var pagePart = encoding.Decode(tokenGroup);
                 var generatedResponse = await GenerationProvider.Providers.FirstOrDefault().GenerateResponseAsync(
@@ -111,10 +116,10 @@ namespace ChatClient.Generation {
                         Model = OpenAIProvider.Gpt35Turbo
                     });
                 sb.AppendLine(generatedResponse.Content);
+                Log.Information("Chunk {@Chunk} done", i);
             }
 
-            Debug.Print("Analysis finished");
-            Debug.Print(sb.ToString());
+            Log.Information("Analysis finished. Spent {@Time} seconds", (start - DateTime.Now).TotalSeconds);
             return sb.ToString();
         }
 

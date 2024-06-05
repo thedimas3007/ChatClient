@@ -15,6 +15,7 @@ using Microsoft.UI.Xaml.Data;
 using Microsoft.UI.Xaml.Navigation;
 using OpenAI;
 using OpenAI.Managers;
+using Serilog;
 
 namespace ChatClient.Views;
 
@@ -165,7 +166,7 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
         try {
             var result = await openAiService.Models.ListModel();
             if (!result.Successful) {
-                Debug.Fail(result.Error?.Message);
+                Log.Warning("Unable to verify OpenAI token. {@Code} / {@Message}", result.Error?.Code, result.Error?.Message);
                 return;
             }
 
@@ -175,14 +176,14 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             AskWebAvailable = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
+            Log.Information("OpenAI token has been verified");
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
-            Debug.Print("Unable to verify token");
-            Debug.Print(ex.StackTrace);
             _settingsProvider.OpenAiTokenVerified = false;
             OpenAiTokenInput.TokenVerified = false;
             AskWebAvailable = false;
+            Log.Warning(ex, "Unable to verify OpenAI token");
         }
     }
     
@@ -197,15 +198,15 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             GoogleAvailable = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
+            Log.Information("Google config has been verified");
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
-            Debug.Print("Unable to verify token");
-            Debug.Print(ex.StackTrace);
             _settingsProvider.GoogleSearchVerified = false;
             GoogleSearchTokenInput.TokenVerified = false;
             GoogleSearchIdInput.TokenVerified = false;
             GoogleAvailable = false;
+            Log.Warning(ex, "Unable to verify Google config");
         }
     }
     
@@ -218,6 +219,7 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             WolframAvailable = true;
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Success;
             NotificationQueue.Show("Token verified", 2000);
+            Log.Information("Wolfram token has been verified");
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
@@ -226,8 +228,13 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
             _settingsProvider.WolframTokenVerified = false;
             WolframTokenInput.TokenVerified = false;
             WolframAvailable = false;
+            Log.Warning(ex, "Unable to verify Wolfram token");
         }
     }
  
     #endregion
+
+    private void DebugButton_OnClick(object sender, RoutedEventArgs e) {
+        throw new NotImplementedException();
+    }
 }
