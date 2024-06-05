@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.IO;
-using System.Management;
 using System.Runtime.CompilerServices;
 using Windows.UI.Popups;
 using Microsoft.Extensions.Logging;
@@ -85,31 +84,9 @@ public partial class App : Application {
             report.WriteLine($"Exception: {args.Exception.GetType()}");
             report.WriteLine();
 
-            report.WriteLine("-- Stacktrace  -");
+            report.WriteLine("-- Stacktrace --");
             report.WriteLine(args.Exception.ToString());
             report.WriteLine();
-
-            report.WriteLine("-- Hardware --");
-            ManagementObjectSearcher cpuSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_Processor");
-            report.WriteLine("CPU:");
-            foreach (var obj in cpuSearcher.Get()) {
-                report.WriteLine($"  {obj["Name"]}");
-            }
-
-            var ramSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_PhysicalMemory");
-            report.WriteLine("RAM: ");
-            foreach (var obj in ramSearcher.Get()) {
-                report.WriteLine(
-                    $"  {ConvertSize((ulong)obj["Capacity"])} {obj["Speed"]}MHz {GetMemoryType((uint)obj["SMBIOSMemoryType"])}");
-            }
-
-            var gpuSearcher = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");
-            report.WriteLine("GPU:");
-            foreach (var obj in gpuSearcher.Get()) {
-                report.WriteLine($"  {obj["Name"]}");
-            }
-            report.WriteLine();
-            report.Flush();
         };
     }
 

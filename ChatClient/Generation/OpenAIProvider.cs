@@ -45,7 +45,7 @@ namespace ChatClient.Generation {
             });
             var message = response.Choices.First().Message;
             return new MessageResponse(message.Role, message.Content, message.Name, message.ToolCallId,
-                message.ToolCalls);
+                message.ToolCalls, response.Usage.PromptTokens, response.Usage.CompletionTokens ?? -1);
         }
 
         public override async IAsyncEnumerable<MessageResponse> GenerateResponseAsStreamAsync(List<Message> messages,
@@ -71,7 +71,7 @@ namespace ChatClient.Generation {
 
                 var message = response.Choices.First().Message;
                 yield return new MessageResponse(message.Role, message.Content, message.Name, message.ToolCallId,
-                    message.ToolCalls);
+                    message.ToolCalls, response.Usage.PromptTokens, response.Usage.CompletionTokens ?? -1);
             }
         }
     }

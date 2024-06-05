@@ -27,6 +27,7 @@ using OpenAI.ObjectModels.RequestModels;
 using Microsoft.UI.Input;
 using Windows.UI.Core;
 using Serilog;
+using SharpToken;
 
 namespace ChatClient.Views;
 
@@ -80,7 +81,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
         return response.Choices[0].Message.Content?.Replace("\"", "").Replace("'", "");
     }
 
-    public async Task GenerateResult() {
+    public async Task GenerateResult(int depth = 0) {
         try {
             var messages = await _messageRepository.GetMessages(SelectedChat.Id);
             var settings = new GenerationSettings() {
@@ -96,6 +97,20 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
             if (_settingsProvider.GoogleEnabled) tools.Add(Tools.AllTools[0]);
             if (_settingsProvider.AskWebEnabled) tools.Add(Tools.AllTools[1]);
             if (_settingsProvider.WolframEnabled) tools.Add(Tools.AllTools[2]);
+
+            var start = DateTime.Now;
+            if (depth == 0) {
+                if (_settingsProvider.Functions) {
+                    Log.Information("Starting generation on {@Model}. Tools available: {@Tools}",
+                        _settingsProvider.Model.Name, tools.Select(t => t.Function?.Name));
+                } else {
+                    Log.Information("Starting generation on {@Model}. Tools are disabled",
+                        _settingsProvider.Model.Name);
+                }
+            } else {
+                Log.Information("Processing results");
+            }
+
 
             if (_settingsProvider.Streaming) {
                 var message = new ChatMessage("assistant", "");
@@ -130,6 +145,7 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                             }
 
                             AddToolCall(toolCall);
+                            Log.Information("Using {@Name} with {@Args}", name, args.Select(a => $"{a.Key}: {a.Value}"));
 
                             // TODO: API key check. Probably disable functions if key isn't verified
                             funcResult = "Unavailable";
@@ -152,19 +168,27 @@ public sealed partial class ChatPage : Page, INotifyPropertyChanged {
                                 $"Unable to use {name}: {ex.GetType().Name} - {ex.Message}";
                             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000,
                                 $"Unable to use {name}");
-                            Log.Error(ex, "Unable to use {@Name} with {@Args}", name, args);
+                            Log.Error(ex, "Unable to use {@Name} with {@Args}", name, args.ToList());
                         }
+
+                        var encoding = GptEncoding.GetEncoding("cl100k_base");
+                        Log.Information("Response is {@Tokens} tokens", encoding.CountTokens((funcResult)));
 
                         await _messageRepository.CreateMessage(SelectedChat.Id,
                             ChatMessage.FromTool(funcResult, toolCall.Id));
                     }
 
-                    await GenerateResult();
+                    Log.Information("Diving deeper {@Depth}...", depth+1);
+                    await GenerateResult(depth+1);
                 }
+            }
+
+            if (depth == 0) {
+                Log.Information("Generation finished. Spent {@Time} seconds", (DateTime.Now - start).TotalSeconds);
             }
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
-            NotificationQueue.Show($"{ex.GetType()}: {ex.Message}", 2000, "Unable to send the message");
+            NotificationQueue.Show($"{ex.GetType()}: {ex.Message}", 5000, "Unable to send the message");
         }
     }
 

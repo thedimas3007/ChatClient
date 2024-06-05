@@ -223,8 +223,6 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
         } catch (Exception ex) {
             NotificationQueue.AssociatedObject.Severity = InfoBarSeverity.Error;
             NotificationQueue.Show($"{ex.GetType().Name}: {ex.Message}", 5000, "Unable to verify token");
-            Debug.Print("Unable to verify token");
-            Debug.Print(ex.StackTrace);
             _settingsProvider.WolframTokenVerified = false;
             WolframTokenInput.TokenVerified = false;
             WolframAvailable = false;
@@ -233,8 +231,4 @@ public sealed partial class SettingsPage : Page, INotifyPropertyChanged {
     }
  
     #endregion
-
-    private void DebugButton_OnClick(object sender, RoutedEventArgs e) {
-        throw new NotImplementedException();
-    }
 }

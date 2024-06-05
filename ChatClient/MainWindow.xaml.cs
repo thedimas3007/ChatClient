@@ -13,6 +13,7 @@ using Microsoft.UI.Xaml.Input;
 using Microsoft.UI.Xaml.Media.Animation;
 using CommunityToolkit.WinUI.UI.Controls;
 using Windows.UI.Popups;
+using Serilog;
 
 namespace ChatClient;
 

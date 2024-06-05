@@ -23,8 +23,10 @@
     </Page.Resources>
 
     <Grid>
-        <ScrollViewer Margin="45,26,45,0">
+        <ScrollViewer Padding="45,26">
             <StackPanel Spacing="4">
+                <TextBlock Style="{StaticResource TitleTextBlockStyle}" Padding="0,0,0,16" Text="Settings"></TextBlock>
+
                 <controls:SettingsExpander Header="Tokens"
                                            Description="Press the button next to the input to verify and save tokens. Cross - unverified, Tick - verified"
                                            HeaderIcon="{ui:FontIcon Glyph=&#xE8D7;}"
@@ -222,11 +224,6 @@
                 <controls:SettingsCard Header="App Directory"
                                        HeaderIcon="{ui:FontIcon Glyph=&#xE8B7;}">
                     <Button x:Name="HomeButton" Content="Open" Click="HomeButton_OnClick" />
-                </controls:SettingsCard>
-
-                <controls:SettingsCard Header="Don't Click!"
-                                       HeaderIcon="{ui:FontIcon Glyph=&#xEBE8;}">
-                    <Button x:Name="DebugButton" Content="Open" Click="DebugButton_OnClick" />
                 </controls:SettingsCard>
             </StackPanel>
         </ScrollViewer>

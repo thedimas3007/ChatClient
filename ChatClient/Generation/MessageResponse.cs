@@ -12,13 +12,17 @@ namespace ChatClient.Generation {
         public string? Name { get; set; }
         public string? ToolCallId { get; set; }
         public IList<ToolCall>? ToolCalls { get; set; } // TODO: Make universal for different providers
+        public int TokensIn { get; set; }
+        public int TokensOut { get; set; }
         
-        public MessageResponse(string role, string content, string name, string toolCallId, IList<ToolCall> toolCalls) {
+        public MessageResponse(string role, string content, string name, string toolCallId, IList<ToolCall> toolCalls, int tokensIn, int tokensOut) {
             Role = role;
             Content = content;
             Name = name;
             ToolCallId = toolCallId;
             ToolCalls = toolCalls;
+            TokensIn = tokensIn;
+            TokensOut = tokensOut;
         }
     }
 }

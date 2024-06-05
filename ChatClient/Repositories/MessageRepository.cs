@@ -136,7 +136,7 @@ internal class MessageRepository : INotifyPropertyChanged {
             );", _connection);
         createMessageTableCommand.ExecuteNonQuery();
 
-        Chats = new ObservableCollection<Chat>(GetChats().GetAwaiter().GetResult().OrderByDescending(c => c.LastAccessed));
+        Chats = new ObservableCollection<Chat>(GetChats().GetAwaiter().GetResult().OrderBy(c => c.LastAccessed));
     }
 
     public ObservableCollection<Chat> Chats { set; get; }
@@ -160,7 +160,7 @@ internal class MessageRepository : INotifyPropertyChanged {
 
     public async Task<List<Chat>> GetChats() {
         var result = new List<Chat>();
-        var getChatsCommand = new SqliteCommand(@"SELECT * FROM chat;", _connection);
+        var getChatsCommand = new SqliteCommand(@"SELECT * FROM chat ORDER BY lastAccessed DESC;", _connection);
         var reader = await getChatsCommand.ExecuteReaderAsync();
         while (reader.Read())
             result.Add(new Chat(reader.GetInt32(0), reader.GetString(1),
